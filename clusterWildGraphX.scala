@@ -45,12 +45,7 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 	val randomSet = unclusterGraph.vertices.sample(false, epsilon/maxDegInt, scala.util.Random(1).nextInt(1000))	
 
 	unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1)
-	// This part is for the KDD14 paper
-	// activeSubgraph = graph.subgraph(vpred = (id, attr) => attr == -1)
-	// val isFriendsWithOhterActives = activeSubgraph.aggregateMessages[Int](
-	// 	triplet => {triplet.sendToDst(triplet.srcId.toInt)}, _ , _)	
-	//TODO: find the nonzeros, make a subgraph out of that, and go on
-
+	
 	val clusterUpdates = unclusterGraph.aggregateMessages[Int](
 		triplet => {			
 			if ( triplet.dstAttr == 0 // if not clustered
@@ -58,30 +53,13 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 				){ triplet.sendToDst(triplet.srcId.toInt) }
 			}, math.min(_ , _) 
 	)
-
-	var newVertices = graph.vertices.leftJoin(clusterUpdates) {
-      (id, oldValue, newValueOpt) =>
-      newValueOpt match {
+	val newVertices = unclusterGraph.vertices.leftJoin(clusterUpdates) {
+      (id, oldValue, newValue) =>
+      newValue match {
 		  case Some(x:Int) => x 
-		  case _ => oldValue}
+		  case None => {if (oldValue == -1) -10; else oldValue;}
+     	}
      }	
-	graph = graph.joinVertices(newVertices)((vId, attr, active) => active)
-	graph = graph.joinVertices(randomSet)((vId, attr, active) => -1)
+	graph = graph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr)
 }
 
-
-
-// def sample[A](itms:List[A], sampleSize:Int) = {
-
-//         def collect(vect: Vector[A], sampleSize: Int, acc : List[A]) : List[A] = {
-//             if (sampleSize == 0) acc
-//             else {
-//                 val index = Random.nextInt(vect.size)
-//                 collect( vect.updated(index, vect(0)) tail, sampleSize - 1, vect(index) :: acc)
-//             }
-//         }
-
-//         collect(itms toVector, sampleSize, Nil)
-//     }    
-
-							
