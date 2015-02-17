@@ -101,18 +101,18 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 	graph = graph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr)
 	val time9 = System.currentTimeMillis
 
-	System.out.println(s"
-		$time0\t
-		$time1\t
-		$time2\t
-		$time3\t
-		$time4\t
-		$time5\t
-		$time6\t
-		$time7\t
-		$time8\t
-		$time9\t
-		")
+	System.out.println(
+		s"$time0\t" +
+		s"$time1\t" +
+		s"$time2\t" +
+		s"$time3\t" +
+		s"$time4\t" +
+		s"$time5\t" +
+		s"$time6\t" +
+		s"$time7\t" +
+		s"$time8\t" +
+		s"$time9\t"
+		)
 
 
 } 
