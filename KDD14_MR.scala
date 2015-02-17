@@ -108,6 +108,7 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0 && iter < 50) {
 	val time9 = System.currentTimeMillis
 
 	System.out.println(
+		s"Iter $iter,\t" +
 		s"${time1 - time0}\t" +
 		s"${time2 - time1}\t" +
 		s"${time3 - time2}\t" +
