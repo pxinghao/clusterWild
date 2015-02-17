@@ -42,7 +42,7 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 						triplet.sendToSrc(1) }
 						}, _ + _)
 	val maxDegInt = maxDegree.toArray.map( x => x._2).max	
-	val randomSet = unclusterGraph.vertices.sample(false, epsilon/maxDegInt, scala.util.Random(1).nextInt(1000))	
+	val randomSet = unclusterGraph.vertices.sample(false, epsilon/maxDegInt, scala.util.Random.nextInt(1000))	
 
 	unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1)
 	
