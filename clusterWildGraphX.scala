@@ -39,15 +39,30 @@ val epsilon: Double = 1
 
 val startTime = System.currentTimeMillis
 
-while (graph.vertices.filter(v => v._2 == 0).count()>0) {
-	
+var iter = 0
+
+while (graph.vertices.filter(v => v._2 == 0).count()>0 && iter < 50) {
+
+	iter += 1
+
+	val time0 = System.currentTimeMillis
+
 	unclusterGraph = graph.subgraph(vpred = (id, attr) => attr == 0)
+	System.out.println(s"unclusterGraph.vertices.count = ${unclusterGraph.vertices.count}")
+	System.out.println(s"graph.vertices.count          = ${graph.vertices.count}")
+	val time1 = System.currentTimeMillis
+
 	val maxDegree = unclusterGraph.aggregateMessages[Int](
 		triplet => { if (triplet.srcAttr == 0 & triplet.dstAttr == 0 ) {
 						triplet.sendToSrc(1) }
 						}, _ + _)
+	val time2 = System.currentTimeMillis
+
 	val maxDegInt = maxDegree.toArray.map( x => x._2).max	
 	val randomSet = unclusterGraph.vertices.sample(false, epsilon/maxDegInt, scala.util.Random.nextInt(1000))	
+	System.out.println(s"randomSet.count = ${randomSet.count}")
+	val time3 = System.currentTimeMillis
+
 
 	unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1)
 	
@@ -66,6 +81,14 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
      	}
      }	
 	graph = graph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr)
+
+	System.out.println(
+		s"${time1 - time0}\t" +
+		s"${time2 - time1}\t" +
+		s"${time3 - time2}\t" +
+		"")
+
+
 }
 
 val endTime = System.currentTimeMillis
