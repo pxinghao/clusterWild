@@ -102,17 +102,16 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 	val time9 = System.currentTimeMillis
 
 	System.out.println(
-		s"$time0\t" +
-		s"$time1\t" +
-		s"$time2\t" +
-		s"$time3\t" +
-		s"$time4\t" +
-		s"$time5\t" +
-		s"$time6\t" +
-		s"$time7\t" +
-		s"$time8\t" +
-		s"$time9\t"
-		)
+		s"${time1 - time0}\t" +
+		s"${time2 - time1}\t" +
+		s"${time3 - time2}\t" +
+		s"${time4 - time3}\t" +
+		s"${time5 - time4}\t" +
+		s"${time6 - time5}\t" +
+		s"${time7 - time6}\t" +
+		s"${time8 - time7}\t" +
+		s"${time9 - time8}\t" +
+		"")
 
 
 } 
