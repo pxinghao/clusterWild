@@ -3,6 +3,7 @@ import org.apache.spark.graphx.lib._
 import org.apache.spark.rdd.RDD
 import scala.util.Random
 
+val runExperiment = {
 
 val vertexArray = Array(
 	(1L, (0)),
@@ -63,3 +64,4 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 	graph = graph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr)
 }
 
+}
