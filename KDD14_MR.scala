@@ -1,36 +1,39 @@
 import org.apache.spark.graphx._
+import org.apache.spark.graphx.util._
 import org.apache.spark.graphx.lib._
 import org.apache.spark.rdd.RDD
 import scala.util.Random
 
 
-val vertexArray = Array(
-	(1L, (0)),
-	(2L, (0)),
-	(3L, (0)),
-	(4L, (0)),
-	(5L, (0))
-	)
+// val vertexArray = Array(
+// 	(1L, (0)),
+// 	(2L, (0)),
+// 	(3L, (0)),
+// 	(4L, (0)),
+// 	(5L, (0))
+// 	)
 
 
-val edgeArray = Array(
-	Edge(1, 2, 1),
-	Edge(1, 3, 1),
-	Edge(1, 5, 1),
-	Edge(2, 1, 1),
-	Edge(2, 4, 1),
-	Edge(2, 5, 1),
-	Edge(3, 1, 1),
-	Edge(3, 5, 1),
-	Edge(4, 2, 1),
-	Edge(5, 1, 1),
-	Edge(5, 2, 1),
-	Edge(5, 3, 1)
-	)
+// val edgeArray = Array(
+// 	Edge(1, 2, 1),
+// 	Edge(1, 3, 1),
+// 	Edge(1, 5, 1),
+// 	Edge(2, 1, 1),
+// 	Edge(2, 4, 1),
+// 	Edge(2, 5, 1),
+// 	Edge(3, 1, 1),
+// 	Edge(3, 5, 1),
+// 	Edge(4, 2, 1),
+// 	Edge(5, 1, 1),
+// 	Edge(5, 2, 1),
+// 	Edge(5, 3, 1)
+// 	)
 
-val vertexRDD: RDD[(Long,  (Int))] = sc.parallelize(vertexArray)
-val edgeRDD: RDD[Edge[Int]] = sc.parallelize(edgeArray)
-var graph: Graph[(Int), Int] = Graph(vertexRDD, edgeRDD)
+// val vertexRDD: RDD[(Long,  (Int))] = sc.parallelize(vertexArray)
+// val edgeRDD: RDD[Edge[Int]] = sc.parallelize(edgeArray)
+// var graph: Graph[(Int), Int] = Graph(vertexRDD, edgeRDD)
+var graph = GraphGenerators.rmatGraph(sc, 100, 1000).mapVertices((vid, _) => 0)
+
 var unclusterGraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
 
