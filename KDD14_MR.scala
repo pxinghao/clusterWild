@@ -45,11 +45,17 @@ val epsilon: Double = 1
 
 val startTime = System.currentTimeMillis
 
-while (graph.vertices.filter(v => v._2 == 0).count()>0) {
+var iter = 0
+
+while (graph.vertices.filter(v => v._2 == 0).count()>0 && iter < 20) {
+
+	iter += 1
 
 	val time0 = System.currentTimeMillis
 	
 	unclusterGraph = graph.subgraph(vpred = (id, attr) => attr == 0)
+	System.out.println(s"unclusterGraph.vertices.count = ${unclusterGraph.vertices.count}")
+	System.out.println(s"graph.vertices.count          = ${graph.vertices.count}")
 	val time1 = System.currentTimeMillis
 
 	val maxDegree = unclusterGraph.aggregateMessages[Int](
