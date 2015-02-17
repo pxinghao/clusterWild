@@ -47,7 +47,7 @@ val startTime = System.currentTimeMillis
 
 var iter = 0
 
-while (graph.vertices.filter(v => v._2 == 0).count()>0 && iter < 50) {
+while (graph.vertices.filter(v => v._2 == 0).count()>0 && iter < 30) {
 
 	iter += 1
 
