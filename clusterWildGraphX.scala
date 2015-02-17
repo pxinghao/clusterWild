@@ -70,4 +70,4 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 
 val endTime = System.currentTimeMillis
 
-System.println(s"${endTime - startTime} ms taken")
+System.out.println(s"${endTime - startTime} ms taken")
