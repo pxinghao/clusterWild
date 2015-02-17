@@ -13,7 +13,7 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.logNormalGraph(sc, numVertices = 1000).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.logNormalGraph(sc, numVertices = 10000).mapVertices( (id, _) => -100.toInt )
 var unclusterGraph: Graph[(Int), Int] = graph
 var activeSubgraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
@@ -29,6 +29,7 @@ var randomSet = graph.vertices.sample(false, 1, 1)
 var newVertices = graph.vertices.sample(false, 1, 1)	
 var hasFriends = graph.vertices.sample(false, 1, 1)	
 
+val startTime = System.currentTimeMillis
 
 while (graph.vertices.filter(v => v._2 == -100).count()>0) {
 	
@@ -88,6 +89,9 @@ while (graph.vertices.filter(v => v._2 == -100).count()>0) {
 System.out.println(s"ClusterIDs ${graph.vertices.collect().toList}.")
 
 
+val endTime = System.currentTimeMillis
+
+System.out.println(s"Total time: ${endTime - startTime}")
 
 
 
