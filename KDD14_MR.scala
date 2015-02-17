@@ -4,6 +4,12 @@ import org.apache.spark.graphx.lib._
 import org.apache.spark.rdd.RDD
 import scala.util.Random
 
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+
+Logger.getLogger("org").setLevel(Level.WARN)
+Logger.getLogger("akka").setLevel(Level.WARN)
+
 
 // val vertexArray = Array(
 // 	(1L, (0)),
@@ -48,6 +54,7 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 						}, _ + _)
 	val maxDegInt = if (maxDegree.count == 0) 1 else maxDegree.toArray.map( x => x._2).max	
 	val randomSet = unclusterGraph.vertices.sample(false, epsilon/maxDegInt, scala.util.Random.nextInt(1000))	
+	System.out.println(s"randomSet.count = ${randomSet.count}")
 
 	unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1)
 	// This is the extra part needed for the KDD14 paper
