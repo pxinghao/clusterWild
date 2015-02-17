@@ -46,22 +46,39 @@ val epsilon: Double = 1
 val startTime = System.currentTimeMillis
 
 while (graph.vertices.filter(v => v._2 == 0).count()>0) {
+
+	val time0 = System.currentTimeMillis
 	
 	unclusterGraph = graph.subgraph(vpred = (id, attr) => attr == 0)
+	val time1 = System.currentTimeMillis
+
 	val maxDegree = unclusterGraph.aggregateMessages[Int](
 		triplet => { if (triplet.srcAttr == 0 & triplet.dstAttr == 0 ) {
 						triplet.sendToSrc(1) }
 						}, _ + _)
+	val time2 = System.currentTimeMillis
+
+
 	val maxDegInt = if (maxDegree.count == 0) 1 else maxDegree.toArray.map( x => x._2).max	
 	val randomSet = unclusterGraph.vertices.sample(false, epsilon/maxDegInt, scala.util.Random.nextInt(1000))	
 	System.out.println(s"randomSet.count = ${randomSet.count}")
-	
+	val time3 = System.currentTimeMillis
+
+
 
 	unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1)
+	val time4 = System.currentTimeMillis
+
 	// This is the extra part needed for the KDD14 paper
 	val activeSubgraph = unclusterGraph.subgraph(vpred = (id, attr) => attr == -1)
+	val time5 = System.currentTimeMillis
+
 	val hasFriends = activeSubgraph.degrees.filter{case (id, u) => u > 0}
+	val time6 = System.currentTimeMillis
+
 	unclusterGraph = unclusterGraph.joinVertices(hasFriends)((vId, attr, active) => 0)
+	val time7 = System.currentTimeMillis
+
 	// extra code ends here
 
 	val clusterUpdates = unclusterGraph.aggregateMessages[Int](
@@ -71,6 +88,8 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 				){ triplet.sendToDst(triplet.srcId.toInt) }
 			}, math.min(_ , _) 
 	)
+	val time8 = System.currentTimeMillis
+
 
 	val newVertices = unclusterGraph.vertices.leftJoin(clusterUpdates) {
       (id, oldValue, newValue) =>
@@ -80,6 +99,21 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
      	}
      }	
 	graph = graph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr)
+	val time9 = System.currentTimeMillis
+
+	System.out.println(s"
+		$time0\t
+		$time1\t
+		$time2\t
+		$time3\t
+		$time4\t
+		$time5\t
+		$time6\t
+		$time7\t
+		$time8\t
+		$time9\t
+		")
+
 
 } 
 
