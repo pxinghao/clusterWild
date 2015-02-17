@@ -37,6 +37,8 @@ var graph = GraphGenerators.rmatGraph(sc, 100, 1000).mapVertices((vid, _) => 0)
 var unclusterGraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
 
+val startTime = System.currentTimeMillis
+
 while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 	
 	unclusterGraph = graph.subgraph(vpred = (id, attr) => attr == 0)
@@ -73,3 +75,6 @@ while (graph.vertices.filter(v => v._2 == 0).count()>0) {
 
 } 
 
+val endTime = System.currentTimeMillis
+
+System.println(s"${endTime - startTime} ms taken")
