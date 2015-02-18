@@ -76,7 +76,7 @@ while (graph.vertices.filter(v => v._2 == -100).count()>0) {
     x = x+1
 	// graph.vertices.collect()
 }
-System.out.println(s"ClusterIDs ${graph.vertices.collect().toList}.")
+// System.out.println(s"ClusterIDs ${graph.vertices.collect().toList}.")
 
 
 val endTime = System.currentTimeMillis
