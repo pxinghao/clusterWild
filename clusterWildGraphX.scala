@@ -13,7 +13,7 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e6.toInt, numEdges = 3e6.toInt).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e6.toInt, numEdges = 2e6.toInt).mapVertices( (id, _) => -100.toInt )
 var unclusterGraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
 
