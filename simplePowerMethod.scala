@@ -31,7 +31,7 @@ while (iteration < numIter) {
         (id, oldRank, msgSum) => msgSum
     }.cache()
 
-    // rankGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+    rankGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
     System.out.println(s"PowerMethod finished iteration $iteration.")
     // prevRankGraph.vertices.unpersist(false)
     // prevRankGraph.edges.unpersist(false)
