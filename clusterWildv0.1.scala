@@ -59,10 +59,18 @@ while (maxDeg>1) {
           case None => {if (oldValue == -1) -10; else oldValue;}
          }
     }
-	unclusterGraphPrev = unclusterGraph
+	// unclusterGraphPrev = unclusterGraph
     unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
-    unclusterGraphPrev.vertices.unpersist()
-    unclusterGraphPrev.edges.unpersist()
+    // unclusterGraphPrev.vertices.unpersist()
+    // unclusterGraphPrev.edges.unpersist()
+    // unclusterGraph = unclusterGraph.subgraph(vpred = (id, attr) => attr == -100).cache()
+
+    // newVertices = newVertices.filter(vID_attr => vID_attr._2 != -100)
+    // if (clusterIDs == null){
+    //     clusterIDs = newVertices
+    // }else{
+    //     clusterIDs = clusterIDs.union(newVertices)
+    // }
 
     System.out.println(s"ClusterWild finished iteration $x.")
     System.out.println(s"MaxDegree $maxDeg.")
