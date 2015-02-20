@@ -107,7 +107,7 @@ var numExpts = 10
 var KDD14_MRRunTimes : Array[Long] = new Array[Long](10)
 var expti : Int = 0
 while (expti < numExpts){
-KDD14_MRRunTimes(expti) = runClusterWild(1e6.toInt, 2e6.toInt)
+KDD14_MRRunTimes(expti) = runKDD14_MR(1e6.toInt, 2e6.toInt)
 expti += 1
 }
 
