@@ -33,10 +33,11 @@ var maxDeg: Int = 0
 var randomSet = graph.vertices.sample(false, 1, 1)
 var newVertices = graph.vertices.sample(false, 1, 1)
 
+var clusterIDs : RDD[(VertexId, Int)] = null
 
 val startTime = System.currentTimeMillis
 
-while (unclusterGraph.degrees.count()>0) {
+while (unclusterGraph.vertices.count()>0) {
 
     maxDegree = unclusterGraph.degrees
     maxDeg = if (maxDegree.count == 0) 1 else maxDegree.toArray.map( x => x._2).max
@@ -61,7 +62,13 @@ while (unclusterGraph.degrees.count()>0) {
     }
 
     unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).subgraph(vpred = (id, attr) => attr == -100).cache()
-    graph = graph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
+
+    newVertices = newVertices.filter(vID_attr => vID_attr._2 != -100)
+    if (clusterIDs == null){
+        clusterIDs = newVertices
+    }else{
+        clusterIDs = clusterIDs.union(newVertices)
+    }
 
     System.out.println(s"ClusterWild finished iteration $x.")
     System.out.println(s"MaxDegree $maxDeg.")
