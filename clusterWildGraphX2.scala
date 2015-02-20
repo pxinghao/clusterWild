@@ -13,13 +13,7 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-def runClusterWild(requestedNumVertices: Int, numEdges: Int) : Long = {
-
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(
-	sc,
-	requestedNumVertices = requestedNumVertices,
-	numEdges = numEdges
-	).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e6.toInt, numEdges = 2e6.toInt).mapVertices( (id, _) => -100.toInt )
 var unclusterGraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
 var vertexRDDs = graph.vertices
@@ -34,8 +28,6 @@ var randomSet = graph.vertices.sample(false, 1, 1)
 var newVertices = graph.vertices.sample(false, 1, 1)
 
 var clusterIDs : RDD[(VertexId, Int)] = null
-
-val startTime = System.currentTimeMillis
 
 while (unclusterGraph.vertices.count()>0) {
 
@@ -61,7 +53,7 @@ while (unclusterGraph.vertices.count()>0) {
          }
     }
 
-    // unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).subgraph(vpred = (id, attr) => attr == -100).cache()
+    unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).subgraph(vpred = (id, attr) => attr == -100).cache()
 
     newVertices = newVertices.filter(vID_attr => vID_attr._2 != -100)
     if (clusterIDs == null){
@@ -74,22 +66,3 @@ while (unclusterGraph.vertices.count()>0) {
     System.out.println(s"MaxDegree $maxDeg.")
     x = x+1
 }
-
-val endTime = System.currentTimeMillis
-
-System.out.println(s"Total time: ${endTime - startTime}")
-
-endTime - startTime
-
-// System.out.println(graph.vertices.collect)
-
-}
-
-var numExpts = 10
-var clusterWildRunTimes : Array[Long] = new Array[Long](numExpts)
-var expti : Int = 0
-while (expti < numExpts){
-clusterWildRunTimes(expti) = runClusterWild(5e5.toInt, 1e6.toInt)
-expti += 1
-}
-

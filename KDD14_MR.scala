@@ -13,7 +13,13 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e6.toInt, numEdges = 2e6.toInt).mapVertices( (id, _) => -100.toInt )
+def runKDD14_MR(requestedNumVertices: Int, numEdges: Int) : Long = {
+
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(
+	sc,
+	requestedNumVertices = requestedNumVertices,
+	numEdges = numEdges
+	).mapVertices( (id, _) => -100.toInt )
 var unclusterGraph: Graph[(Int), Int] = graph
 var activeSubgraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
@@ -92,6 +98,18 @@ while (graph.vertices.filter(v => v._2 == -100).count()>0) {
 val endTime = System.currentTimeMillis
 
 System.out.println(s"Total time: ${endTime - startTime}")
+
+endTime - startTime
+
+}
+
+var numExpts = 10
+var KDD14_MRRunTimes : Array[Long] = new Array[Long](10)
+var expti : Int = 0
+while (expti < numExpts){
+KDD14_MRRunTimes(expti) = runKDD14_MR(3e5.toInt, 6e5.toInt)
+expti += 1
+}
 
 
 

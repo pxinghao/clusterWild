@@ -13,12 +13,12 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e3.toInt, numEdges = 1e3.toInt).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e6.toInt, numEdges = 1e6.toInt).mapVertices( (id, _) => -100.toInt )
 var rankGraph: Graph[Int, Int] = graph
 
 var iteration = 0
 var numIter = 10
-var prevRankGraph: Graph[Int, Int] = null
+// var prevRankGraph: Graph[Int, Int] = null
 
 while (iteration < numIter) {
     rankGraph.cache()
@@ -26,15 +26,15 @@ while (iteration < numIter) {
     val rankUpdates = rankGraph.aggregateMessages[Int](
         ctx => ctx.sendToDst(ctx.srcAttr), _ + _, TripletFields.Src)
 
-    prevRankGraph = rankGraph
+    // prevRankGraph = rankGraph
     rankGraph = rankGraph.joinVertices(rankUpdates) {
         (id, oldRank, msgSum) => msgSum
     }.cache()
 
     rankGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
     System.out.println(s"PowerMethod finished iteration $iteration.")
-    prevRankGraph.vertices.unpersist(false)
-    prevRankGraph.edges.unpersist(false)
+    // prevRankGraph.vertices.unpersist(false)
+    // prevRankGraph.edges.unpersist(false)
 
     iteration += 1
     
