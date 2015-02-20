@@ -13,7 +13,7 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e3.toInt, numEdges = 1e3.toInt).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e6.toInt, numEdges = 1e6.toInt).mapVertices( (id, _) => -100.toInt )
 var rankGraph: Graph[Int, Int] = graph
 
 var iteration = 0
