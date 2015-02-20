@@ -13,7 +13,13 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e5.toInt, numEdges = 2e5.toInt).mapVertices( (id, _) => -100.toInt )
+def runClusterWild(requestedNumVertices: Int, numEdges: Int) : Long = {
+
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(
+	sc,
+	requestedNumVertices = requestedNumVertices,
+	numEdges = numEdges
+	).mapVertices( (id, _) => -100.toInt )
 var unclusterGraph: Graph[(Int), Int] = graph
 val epsilon: Double = 1
 
@@ -83,5 +89,15 @@ val endTime = System.currentTimeMillis
 
 System.out.println(s"Total time: ${endTime - startTime}")
 
+endTime - startTime
 
+}
+
+var numExpts = 10
+var clusterWildRunTimes : Array[Long] = new Array[Long](10)
+var expti : Int = 0
+while (expti < numExpts){
+clusterWildRunTimes(expti) = runClusterWild(1e6.toInt, 2e6.toInt)
+expti += 1
+}
 
