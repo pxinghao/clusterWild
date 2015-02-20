@@ -107,7 +107,7 @@ var numExpts = 10
 var KDD14_MRRunTimes : Array[Long] = new Array[Long](10)
 var expti : Int = 0
 while (expti < numExpts){
-KDD14_MRRunTimes(expti) = runKDD14_MR(5e5.toInt, 1e6.toInt)
+KDD14_MRRunTimes(expti) = runKDD14_MR(3e5.toInt, 6e5.toInt)
 expti += 1
 }
 
