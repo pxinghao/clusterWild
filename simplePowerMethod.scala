@@ -13,7 +13,7 @@ Logger.getLogger("org").setLevel(Level.WARN)
 Logger.getLogger("akka").setLevel(Level.WARN)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e2.toInt, numEdges = 2e2.toInt).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e3.toInt, numEdges = 1e3.toInt).mapVertices( (id, _) => -100.toInt )
 var rankGraph: Graph[Int, Int] = graph
 
 var iteration = 0
@@ -32,7 +32,7 @@ while (iteration < numIter) {
     }.cache()
 
     rankGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-    System.out.println(s"PowerMethod finished iteration $x.")
+    System.out.println(s"PowerMethod finished iteration $iteration.")
     prevRankGraph.vertices.unpersist(false)
     prevRankGraph.edges.unpersist(false)
 
