@@ -61,7 +61,7 @@ while (unclusterGraph.vertices.count()>0) {
          }
     }
 
-    unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).subgraph(vpred = (id, attr) => attr == -100).cache()
+    // unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).subgraph(vpred = (id, attr) => attr == -100).cache()
 
     newVertices = newVertices.filter(vID_attr => vID_attr._2 != -100)
     if (clusterIDs == null){
