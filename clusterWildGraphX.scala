@@ -89,7 +89,7 @@ var numExpts = 10
 var clusterWildRunTimes : Array[Long] = new Array[Long](numExpts)
 var expti : Int = 0
 while (expti < numExpts){
-clusterWildRunTimes(expti) = runClusterWild(5e5.toInt, 1e6.toInt)
+clusterWildRunTimes(expti) = runClusterWild(3e5.toInt, 6e5.toInt)
 expti += 1
 }
 
