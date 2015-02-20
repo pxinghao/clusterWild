@@ -27,9 +27,9 @@ while (iteration < numIter) {
         ctx => ctx.sendToDst(ctx.srcAttr), _ + _, TripletFields.Src)
 
     prevRankGraph = rankGraph
-    // rankGraph = rankGraph.joinVertices(rankUpdates) {
-    //     (id, oldRank, msgSum) => msgSum
-    // }.cache()
+    rankGraph = rankGraph.joinVertices(rankUpdates) {
+        (id, oldRank, msgSum) => msgSum
+    }
 
     rankGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
     System.out.println(s"PowerMethod finished iteration $iteration.")
