@@ -38,7 +38,7 @@ var maxDegree: VertexRDD[Int] = unclusterGraph.aggregateMessages[Int](
         triplet => {
             if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
             }, _ + _).cache()
-var maxDeg: Int = if (maxDegree.count == 0) 0 else maxDegree.toArray.map( x => x._2).max
+          var maxDeg: Int = if (maxDegree.count == 0) 0 else maxDegree.map( x => x._2).reduce((a,b) => math.max(a, b))
 
 while (maxDeg>=1) {
 
