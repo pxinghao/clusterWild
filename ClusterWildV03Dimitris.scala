@@ -17,8 +17,8 @@ Logger.getLogger("akka").setLevel(Level.OFF)
 // var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e4.toInt, numEdges = 1e4.toInt).mapVertices( (id, _) => -100.toInt )
 
 
-val path = "/Users/dimitris/Documents/graphs/amazon.txt"
-val numParitions = 2
+val path = "hdfs:///uk-2007-05"
+val numParitions = 320
 val graphInit: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
 //The following is needed for undirected (bi-directional edge) graphs
 val vertexRDDs: VertexRDD[Int] = graphInit.vertices
