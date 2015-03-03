@@ -69,7 +69,7 @@ while (maxDeg>=1) {
         triplet => {if ( triplet.dstAttr == -100 & triplet.srcAttr == -100){ triplet.sendToDst(1) }
             }, _ + _
     ).cache()
-             maxDeg = if (maxDegree.count == 0) 0 else maxDegree.toArray.map( x => x._2).max
+  maxDeg = if (maxDegree.count == 0) 0 else maxDegree.map( x => x._2).reduce((a,b) => math.max(a,b))
     System.out.println(s"new maxDegree $maxDeg.")
     System.out.println(s"ClusterWild! finished iteration $x.")
     x = x+1
