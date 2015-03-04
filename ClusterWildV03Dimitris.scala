@@ -34,6 +34,8 @@ var clusterUpdates: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
 var randomSet: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
 var newVertices: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
 
+var numNewCenters : Int = 0
+
 var maxDegree: VertexRDD[Int] = unclusterGraph.aggregateMessages[Int](
         triplet => {
             if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
@@ -41,10 +43,12 @@ var maxDegree: VertexRDD[Int] = unclusterGraph.aggregateMessages[Int](
           var maxDeg: Int = if (maxDegree.count == 0) 0 else maxDegree.map( x => x._2).reduce((a,b) => math.max(a, b))
 
 while (maxDeg>=1) {
+    val time0 = System.currentTimeMillis
 
-    randomSet = unclusterGraph.vertices.filter(v => v._2 == -100).sample(false, math.min(epsilon/maxDeg,1), scala.util.Random.nextInt(1000))
-    while(randomSet.count==0){
+    numNewCenters = 0
+    while(numNewCenters==0){
         randomSet = unclusterGraph.vertices.filter(v => v._2 == -100).sample(false, math.min(epsilon/maxDeg,1), scala.util.Random.nextInt(1000))
+        numNewCenters = randomSet.count
     }
     // System.out.println(s"Cluster Centers ${randomSet.collect().toList}.")
 
@@ -69,9 +73,17 @@ while (maxDeg>=1) {
         triplet => {if ( triplet.dstAttr == -100 & triplet.srcAttr == -100){ triplet.sendToDst(1) }
             }, _ + _
     ).cache()
-  maxDeg = if (maxDegree.count == 0) 0 else maxDegree.map( x => x._2).reduce((a,b) => math.max(a,b))
-    System.out.println(s"new maxDegree $maxDeg.")
-    System.out.println(s"ClusterWild! finished iteration $x.")
+    maxDeg = if (maxDegree.count == 0) 0 else maxDegree.map( x => x._2).reduce((a,b) => math.max(a,b))
+    // System.out.println(s"new maxDegree $maxDeg.")
+    // System.out.println(s"ClusterWild! finished iteration $x.")
+
+    val time1 = System.currentTimeMillis
+    System.out.println(
+      s"$x\t" +
+      s"$maxDeg\t" +
+      s"$numNewCenters\t" +
+      s"${time1-time0}\t" +
+      "")
     x = x+1
 }
 
