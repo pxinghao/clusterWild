@@ -34,7 +34,7 @@ var clusterUpdates: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
 var randomSet: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
 var newVertices: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
 
-var numNewCenters : Int = 0
+var numNewCenters : Long = 0
 
 var maxDegree: VertexRDD[Int] = unclusterGraph.aggregateMessages[Int](
         triplet => {
