@@ -14,16 +14,16 @@ Logger.getLogger("org").setLevel(Level.OFF)
 Logger.getLogger("akka").setLevel(Level.OFF)
 
 
-// var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e4.toInt, numEdges = 1e4.toInt).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e7.toInt, numEdges = 1e7.toInt).mapVertices( (id, _) => -100.toInt )
 
 
-val path = "hdfs:///twitter"
-val numParitions = 320
-val graphInit: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
-//The following is needed for undirected (bi-directional edge) graphs
-val vertexRDDs: VertexRDD[Int] = graphInit.vertices
-var edgeRDDs: RDD[Edge[Int]] = graphInit.edges.reverse.union(graphInit.edges)
-val graph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
+// val path = "hdfs:///twitter"
+// val numParitions = 320
+// val graphInit: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
+// //The following is needed for undirected (bi-directional edge) graphs
+// val vertexRDDs: VertexRDD[Int] = graphInit.vertices
+// var edgeRDDs: RDD[Edge[Int]] = graphInit.edges.reverse.union(graphInit.edges)
+// val graph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
 
 
 var unclusterGraph: Graph[(Int), Int] = graph
