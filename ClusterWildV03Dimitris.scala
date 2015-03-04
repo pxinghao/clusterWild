@@ -14,7 +14,7 @@ Logger.getLogger("org").setLevel(Level.OFF)
 Logger.getLogger("akka").setLevel(Level.OFF)
 
 
-var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e7.toInt, numEdges = 1e7.toInt).mapVertices( (id, _) => -100.toInt )
+var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
 
 
 // val path = "hdfs:///twitter"
