@@ -48,15 +48,15 @@ while (maxDeg>=1) {
 
     numNewCenters = 0
     while(numNewCenters==0){
-        randomSet = unclusterGraph.vertices.filter(v => v._2 == -100).sample(false, math.min(epsilon/maxDeg,1), scala.util.Random.nextInt(1000))
+        randomSet = unclusterGraph.vertices.filter(v => v._2 == -100).sample(false, math.min(epsilon/maxDeg,1), scala.util.Random.nextInt(1000)).cache
         numNewCenters = randomSet.count
     }
     // System.out.println(s"Cluster Centers ${randomSet.collect().toList}.")
 
-    prevUnclusterGraph = unclusterGraph
+    // prevUnclusterGraph = unclusterGraph
     unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1).cache()
-    prevUnclusterGraph.vertices.unpersist(false)
-    prevUnclusterGraph.edges.unpersist(false)
+    // prevUnclusterGraph.vertices.unpersist(false)
+    // prevUnclusterGraph.edges.unpersist(false)
 
     clusterUpdates = unclusterGraph.aggregateMessages[Int](
         triplet => {
@@ -64,19 +64,19 @@ while (maxDeg>=1) {
                 triplet.sendToDst(triplet.srcId.toInt) 
             }
             }, math.min(_ , _)
-    )
+    ).cache
     newVertices = unclusterGraph.vertices.leftJoin(clusterUpdates) {
       (id, oldValue, newValue) =>
       newValue match {
           case Some(x:Int) => x
           case None => {if (oldValue == -1) id.toInt; else oldValue;}
          }
-    }
+    }.cache
     
-    prevUnclusterGraph = unclusterGraph
+    // prevUnclusterGraph = unclusterGraph
     unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()    
-    prevUnclusterGraph.vertices.unpersist(false)
-    prevUnclusterGraph.edges.unpersist(false)
+    // prevUnclusterGraph.vertices.unpersist(false)
+    // prevUnclusterGraph.edges.unpersist(false)
 
     maxDegree = unclusterGraph.aggregateMessages[Int](
         triplet => {if ( triplet.dstAttr == -100 & triplet.srcAttr == -100){ triplet.sendToDst(1) }
