@@ -48,7 +48,7 @@ while (maxDeg>=1) {
 
     numNewCenters = 0
     while(numNewCenters==0){
-        randomSet = unclusterGraph.vertices.filter(v => v._2 == -100).sample(false, math.min(epsilon/maxDeg,1), scala.util.Random.nextInt(1000)).cache
+        randomSet = unclusterGraph.vertices.filter(v => v._2 == -100).sample(false, math.min(epsilon/maxDeg,1), scala.util.Random.nextInt(1000))
         numNewCenters = randomSet.count
     }
     // System.out.println(s"Cluster Centers ${randomSet.collect().toList}.")
@@ -64,14 +64,14 @@ while (maxDeg>=1) {
                 triplet.sendToDst(triplet.srcId.toInt) 
             }
             }, math.min(_ , _)
-    ).cache
+    )
     newVertices = unclusterGraph.vertices.leftJoin(clusterUpdates) {
       (id, oldValue, newValue) =>
       newValue match {
           case Some(x:Int) => x
           case None => {if (oldValue == -1) id.toInt; else oldValue;}
          }
-    }.cache
+    }
     
     // prevUnclusterGraph = unclusterGraph
     unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()    
