@@ -27,6 +27,7 @@ val graph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) =
 
 
 var unclusterGraph: Graph[(Int), Int] = graph
+var prevUnclusterGraph: Graph[(Int), Int] = null
 val epsilon: Double = 2
 var x: Int = 1
  
@@ -52,7 +53,11 @@ while (maxDeg>=1) {
     }
     // System.out.println(s"Cluster Centers ${randomSet.collect().toList}.")
 
+    prevUnclusterGraph = unclusterGraph
     unclusterGraph = unclusterGraph.joinVertices(randomSet)((vId, attr, active) => -1).cache()
+    prevUnclusterGraph.vertices.unpersist(false)
+    prevUnclusterGraph.edges.unpersist(false)
+
     clusterUpdates = unclusterGraph.aggregateMessages[Int](
         triplet => {
             if (triplet.dstAttr == -100 & triplet.srcAttr == -1){ 
@@ -67,7 +72,11 @@ while (maxDeg>=1) {
           case None => {if (oldValue == -1) id.toInt; else oldValue;}
          }
     }
+    
+    prevUnclusterGraph = unclusterGraph
     unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()    
+    prevUnclusterGraph.vertices.unpersist(false)
+    prevUnclusterGraph.edges.unpersist(false)
 
     maxDegree = unclusterGraph.aggregateMessages[Int](
         triplet => {if ( triplet.dstAttr == -100 & triplet.srcAttr == -100){ triplet.sendToDst(1) }
