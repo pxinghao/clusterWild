@@ -13,17 +13,6 @@ import org.apache.log4j.Level
 import scala.collection.immutable.Map
 
 object ClusterWild_fixes_v04 {
-  def main_test(args: Array[String]) = {
-    Logger.getLogger("org").setLevel(Level.WARN)
-    Logger.getLogger("akka").setLevel(Level.WARN)
-
-    val sc = new SparkContext()
-
-    val graph = GraphLoader.edgeListFile(sc, "hdfs:///uk-2007-05", false, 4)
-    System.out.println(s"${graph.numVertices}")
-
-  }
-
   def main(args: Array[String]) = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
