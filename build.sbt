@@ -1,6 +1,6 @@
 import sbt.Keys._
 
-name := "CWSBT"
+name := "ClusterWild"
 
 version := "1.0"
 
