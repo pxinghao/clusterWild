@@ -30,7 +30,7 @@ object ClusterWild_fixes_v04 {
     val graphType     : String = argmap.getOrElse("graphtype", "rmat").toString.toLowerCase
     val rMatNumEdges  : Int    = argmap.getOrElse("rmatnumedges", 100000000).toString.toInt
     val path          : String = argmap.getOrElse("path", "graphs/astro.edges").toString
-    val numPartitions : Int    = argmap.getOrElse("numpartitions", 4).toString.toInt
+    val numPartitions : Int    = argmap.getOrElse("numpartitions", 640).toString.toInt
 
     /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
