@@ -13,7 +13,7 @@ import org.apache.log4j.Level
 import scala.collection.immutable.Map
 
 object ClusterWild_fixes_v04 {
-  def main(args: Array[String]) = {
+  def main_test(args: Array[String]) = {
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
 
@@ -24,7 +24,7 @@ object ClusterWild_fixes_v04 {
 
   }
 
-  def main_temp(args: Array[String]) = {
+  def main(args: Array[String]) = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
@@ -41,7 +41,7 @@ object ClusterWild_fixes_v04 {
     val graphType     : String = argmap.getOrElse("graphtype", "rmat").toString.toLowerCase
     val rMatNumEdges  : Int    = argmap.getOrElse("rmatnumedges", 100000000).toString.toInt
     val path          : String = argmap.getOrElse("path", "graphs/astro.edges").toString
-    val numPartitions : Int    = argmap.getOrElse("numpartitions", 4).toString.toInt
+    val numPartitions : Int    = argmap.getOrElse("numpartitions", 640).toString.toInt
 
     /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
