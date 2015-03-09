@@ -151,7 +151,6 @@ object ClusterWild_fixes_v04 {
           "")
       x = x + 1
     }
-    clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 
     //Take care of degree 0 nodes
     val time10 = System.currentTimeMillis
@@ -164,12 +163,13 @@ object ClusterWild_fixes_v04 {
         }
     }
     clusterGraph = clusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
+    clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
     val time11 = System.currentTimeMillis
 
     System.out.println(
       s"$x\t" +
         s"$maxDeg\t" +
-        s"$numNewCenters\t" +
+        s"${newVertices.count}t" +
         s"${time11 - time10}\t" +
         "")
 
