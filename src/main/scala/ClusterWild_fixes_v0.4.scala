@@ -14,6 +14,17 @@ import scala.collection.immutable.Map
 
 object ClusterWild_fixes_v04 {
   def main(args: Array[String]) = {
+    Logger.getLogger("org").setLevel(Level.WARN)
+    Logger.getLogger("akka").setLevel(Level.WARN)
+
+    val sc = new SparkContext()
+
+    val graph = GraphLoader.edgeListFile(sc, "hdfs:///uk-2007-05")
+    System.out.println(s"${graph.numVertices}")
+
+  }
+
+  def main_temp(args: Array[String]) = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
