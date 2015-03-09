@@ -10,6 +10,8 @@ import org.apache.spark.graphx.impl.{EdgePartitionBuilder, GraphImpl}
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
+import scala.collection.immutable.Map
+
 object ClusterWild_fixes_v04 {
   def main(args: Array[String]) = {
 
@@ -17,11 +19,34 @@ object ClusterWild_fixes_v04 {
     Logger.getLogger("akka").setLevel(Level.WARN)
 
     val sc = new SparkContext()
+
+    val argmap : Map[String,String] = args.map { a =>
+      val argPair = a.split("=")
+      val name = argPair(0).toLowerCase
+      val value = argPair(1)
+      (name, value)
+    }.toMap
+
+    val graphType     : String = argmap.getOrElse("graphtype", "rmat").toString.toLowerCase
+    val rMatNumEdges  : Int    = argmap.getOrElse("rmatnumedges", 100000000).toString.toInt
+    val path          : String = argmap.getOrElse("path", "graphs/astro.edges").toString
+    val numPartitions : Int    = argmap.getOrElse("numpartitions", 4).toString.toInt
+
+    /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
 
 //    val path = "/Users/dimitris/Documents/graphs/astro.txt"
-//    val numParitions = 4
-//    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
+//    val numPartitions = 4
+//    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numPartitions)
+    */
+
+    val graph: Graph[(Int), Int] =
+      if (graphType == "rmat")
+        GraphGenerators.rmatGraph(sc, requestedNumVertices = rMatNumEdges.toInt, numEdges = rMatNumEdges.toInt).mapVertices( (id, _) => -100.toInt )
+      else
+        GraphLoader.edgeListFile(sc, path, false, numPartitions)
+
+    System.out.println(s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions), ${graph.edges.count} edges (${graph.edges.partitions.length} partitions)")
 
     //The following is needed for undirected (bi-directional edge) graphs
     val vertexRDDs: VertexRDD[Int] = graph.vertices
