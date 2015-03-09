@@ -129,6 +129,18 @@ object ClusterWild_fixes_v04 {
 
       if (x % 3 == 0) maxDeg = math.round(maxDeg / 2);
 
+      if (maxDeg == 0) {
+        // Check if really maxDeg = 0
+        maxDegree = clusterGraph.aggregateMessages[Int](
+          triplet => {
+            if (triplet.dstAttr == -100 & triplet.srcAttr == -100) {
+              triplet.sendToDst(1)
+            }
+          }, _ + _).cache()
+
+        maxDeg = maxDegree.map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      }
+
 
       val time1 = System.currentTimeMillis
       System.out.println(
@@ -140,7 +152,9 @@ object ClusterWild_fixes_v04 {
       x = x + 1
     }
     clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+
     //Take care of degree 0 nodes
+    val time10 = System.currentTimeMillis
     newVertices = clusterGraph.subgraph(vpred = (vId, clusterID) => clusterID == -100).vertices
     newVertices = clusterGraph.vertices.leftJoin(newVertices) {
       (id, oldValue, newValue) =>
@@ -150,5 +164,14 @@ object ClusterWild_fixes_v04 {
         }
     }
     clusterGraph = clusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
+    val time11 = System.currentTimeMillis
+
+    System.out.println(
+      s"$x\t" +
+        s"$maxDeg\t" +
+        s"$numNewCenters\t" +
+        s"${time11 - time10}\t" +
+        "")
+
   }
 }
