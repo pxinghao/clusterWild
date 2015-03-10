@@ -31,7 +31,7 @@ var edgeRDDs: RDD[Edge[Int]] = graphInit.edges.reverse.union(graphInit.edges)
 var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
 val n = clusterGraph.numVertices.toFloat
 
-var prevClusterGraph: Graph[(Int), Int] = clusterGraph
+// var prevClusterGraph: Graph[(Int), Int] = clusterGraph
 val epsilon: Double = 2
 var x: Int = 1
  
@@ -63,14 +63,9 @@ while (maxDeg>=1) {
     centerID = -math.abs(scala.util.Random.nextInt)
     randomSet = randomSet.mapValues( vId => {if (scala.util.Random.nextFloat < epsilon/maxDeg) centerID; else -100;})
     randomSet = randomSet.filter{case (id, clusterID) => clusterID == centerID} // keep the active set      
-    numNewCenters = randomSet.count 
+    // numNewCenters = randomSet.count 
 
-    // prevUnclusterGraph = unclusterGraph
-    //
     clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
-    //
-    // prevUnclusterGraph.vertices.unpersist(false)
-    // prevUnclusterGraph.edges.unpersist(false)
     
     clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -79,48 +74,12 @@ while (maxDeg>=1) {
             }
             }, math.min(_ , _), TripletFields.Src
     )
-    
-    // newVertices = clusterGraph.vertices.leftJoin(clusterUpdates) {
-    //   (id, oldValue, newValue) =>
-    //   newValue match {
-    //       case Some(x:Int) => x
-    //       case None => {if (oldValue == -1) id.toInt; else oldValue;}
-    //      }
-    // }
-    // if (x % math.log(n) == 0) {
-    // prevClusterGraph = clusterGraph
-    // }
-    //
+ 
     clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr).cache()    
     clusterGraph.vertices.count()
     clusterGraph.edges.count()
-    // clusterGraph.unpersist()
-    // clusterGraph = prevClusterGraph
-    // clusterGraph.cache()
-    //
-    // 
-    
-    // materialize(clusterGraph)
-    // g.unpersist()
-      // g = gJoinT1
-    // clusterGraph.edges.foreachPartition(x => {})
-    // clusterGraph.vertices.count
-
-    
-    
-      // logInfo(s"PageRank finished iteration $iteration.")
-
-    // prevUnclusterGraph.edges.unpersist(false)
-
-    // maxDegree = unclusterGraph.aggregateMessages[Int](
-    //     triplet => {if ( triplet.dstAttr == -100 & triplet.srcAttr == -100){ triplet.sendToDst(1) }
-    //         }, _ + _
-    // ).cache()
-    // if (x % math.round(math.log10(n)) == 0) {
     if (x % math.round(math.log(n)) == 0) {
       maxDeg = math.round(maxDeg/2)
-      // prevClusterGraph.vertices.unpersist(false)
-      // prevClusterGraph.edges.unpersist(false)
     }
   
 
