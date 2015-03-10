@@ -19,28 +19,21 @@ Logger.getLogger("akka").setLevel(Level.OFF)
 val path = "/Users/dimitris/Documents/graphs/astro.txt"
 val numParitions = 2
 val graphInit: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
+// clusterGraph = clusterGraph.mapVertices( (id, _) => -100.toInt )
 //The following is needed for undirected (bi-directional edge) graphs
 val vertexRDDs: VertexRDD[Int] = graphInit.vertices
-var edgeRDDs: RDD[Edge[Int]] = graphInit.edges.reverse.union(graphInit.edges)
-// val graph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
+val edgeRDDs: RDD[Edge[Int]] = graphInit.edges.reverse.union(graphInit.edges)
+var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs)
+clusterGraph = clusterGraph.mapVertices( (id, _) => -100.toInt )
 
-
-
-
-
-var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
 val n = clusterGraph.numVertices.toFloat
-
-// var prevClusterGraph: Graph[(Int), Int] = clusterGraph
 val epsilon: Double = 2
-var x: Int = 1
- 
+var x: Int = 1 
+
 var clusterUpdates: VertexRDD[(Int)] = null
 var randomSet: VertexRDD[(Int)] = null
 var newVertices: VertexRDD[(Int)] = null
-
 var numNewCenters : Long = 0
-
 var maxDegree: VertexRDD[Int] = clusterGraph.aggregateMessages[Int](
         triplet => {
             if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
@@ -57,13 +50,20 @@ var centerID: Int = 0
 //TODO: change for to check for empty RDD
 while (maxDeg>=1) {
 
+    clusterGraph.cache()
+
+    
+
+
+
     val time0 = System.currentTimeMillis
 
-    randomSet = clusterGraph.vertices.filter(v => v._2 == -100)  
-    centerID = -math.abs(scala.util.Random.nextInt)
-    randomSet = randomSet.mapValues( vId => {if (scala.util.Random.nextFloat < epsilon/maxDeg) centerID; else -100;})
-    randomSet = randomSet.filter{case (id, clusterID) => clusterID == centerID} // keep the active set      
-    // numNewCenters = randomSet.count 
+    // randomSet = clusterGraph.vertices.filter(v => v._2 == -100)  
+    // centerID = -math.abs(scala.util.Random.nextInt)
+    // randomSet = randomSet.mapValues( vId => {if (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat) centerID; else -100;})
+    // randomSet = randomSet.filter{case (id, clusterID) => clusterID == centerID} // keep the active set      
+    randomSet = clusterGraph.vertices.filter(v => (v._2 == -100) && (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat)).cache()
+    numNewCenters = randomSet.count 
 
     clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
     
@@ -72,16 +72,26 @@ while (maxDeg>=1) {
             if (triplet.srcAttr == centerID & triplet.dstAttr == -100){ 
                 triplet.sendToDst(triplet.srcId.toInt) 
             }
-            }, math.min(_ , _), TripletFields.Src
-    )
- 
+            }, math.min(_ , _)
+    ).cache()
+
+
+    
     clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr).cache()    
     clusterGraph.vertices.count()
-    clusterGraph.edges.count()
+
     if (x % math.round(math.log(n)) == 0) {
       maxDeg = math.round(maxDeg/2)
+      
+      // clusterGraph.edges.count()
     }
-  
+    // maxDegree= clusterGraph.aggregateMessages[Int](
+    //     triplet => {
+    //         if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
+    //         }, _ + _).cache()
+
+    // maxDeg = maxDegree.map( x => x._2).fold(0)((a,b) => math.max(a, b))
+
 
     val time1 = System.currentTimeMillis
     System.out.println(
@@ -91,6 +101,10 @@ while (maxDeg>=1) {
       s"${time1-time0}\t" +
       "")
     x = x+1
+
+
+
+
 }
 clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //Take care of degree 0 nodes
