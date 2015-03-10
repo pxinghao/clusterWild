@@ -122,6 +122,7 @@ object ClusterWildV03Dimitris {
     }
 
     //Take care of degree 0 nodes
+    val time10 = System.currentTimeMillis
     newVertices = unclusterGraph.subgraph(vpred = (vId, clusterID) => clusterID == -100).vertices
     newVertices = unclusterGraph.vertices.leftJoin(newVertices) {
       (id, oldValue, newValue) =>
@@ -131,6 +132,15 @@ object ClusterWildV03Dimitris {
         }
     }
     unclusterGraph = unclusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
+    unclusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+    val time11 = System.currentTimeMillis
+
+    System.out.println(
+      s"$x\t" +
+        s"$maxDeg\t" +
+        s"${newVertices.count}\t" +
+        s"${time11 - time10}\t" +
+        "<end>")
 
 
     // unclusterGraph = unclusterGraph.mapVertices((id,clusterID) => v == 1)
