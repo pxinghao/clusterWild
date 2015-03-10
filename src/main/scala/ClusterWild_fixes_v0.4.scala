@@ -169,7 +169,7 @@ object ClusterWild_fixes_v04 {
     System.out.println(
       s"$x\t" +
         s"$maxDeg\t" +
-        s"${newVertices.count}t" +
+        s"${newVertices.count}\t" +
         s"${time11 - time10}\t" +
         "")
 

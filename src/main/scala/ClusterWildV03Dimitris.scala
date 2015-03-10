@@ -4,25 +4,45 @@ import org.apache.spark.graphx.util.GraphGenerators
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.immutable.Map
+
 object ClusterWildV03Dimitris {
   def main(args: Array[String]) = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
 
-    val sc = new SparkContext(new SparkConf())
+    val sc = new SparkContext()
 
-    var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices((id, _) => -100.toInt)
+    val argmap : Map[String,String] = args.map { a =>
+      val argPair = a.split("=")
+      val name = argPair(0).toLowerCase
+      val value = argPair(1)
+      (name, value)
+    }.toMap
 
+    val graphType     : String = argmap.getOrElse("graphtype", "rmat").toString.toLowerCase
+    val rMatNumEdges  : Int    = argmap.getOrElse("rmatnumedges", 100000000).toString.toInt
+    val path          : String = argmap.getOrElse("path", "graphs/astro.edges").toString
+    val numPartitions : Int    = argmap.getOrElse("numpartitions", 640).toString.toInt
 
-    // val path = "hdfs:///twitter"
-    // val numParitions = 320
-    // val graphInit: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
-    // //The following is needed for undirected (bi-directional edge) graphs
-    // val vertexRDDs: VertexRDD[Int] = graphInit.vertices
-    // var edgeRDDs: RDD[Edge[Int]] = graphInit.edges.reverse.union(graphInit.edges)
-    // val graph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
+    /*
+    var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
 
+//    val path = "/Users/dimitris/Documents/graphs/astro.txt"
+//    val numPartitions = 4
+//    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numPartitions)
+    */
+
+    val graph: Graph[(Int), Int] =
+      if (graphType == "rmat")
+        GraphGenerators.rmatGraph(sc, requestedNumVertices = rMatNumEdges.toInt, numEdges = rMatNumEdges.toInt).mapVertices( (id, _) => -100.toInt )
+      else
+        GraphLoader.edgeListFile(sc, path, false, numPartitions)
+
+    System.out.println(s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions), ${graph.edges.count} edges (${graph.edges.partitions.length} partitions)")
+
+    
 
     var unclusterGraph: Graph[(Int), Int] = graph
     var prevUnclusterGraph: Graph[(Int), Int] = null
