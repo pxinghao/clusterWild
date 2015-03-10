@@ -155,6 +155,7 @@ object ClusterWild_fixes_v04 {
     //Take care of degree 0 nodes
     val time10 = System.currentTimeMillis
     newVertices = clusterGraph.subgraph(vpred = (vId, clusterID) => clusterID == -100).vertices
+    numNewCenters = newVertices.count
     newVertices = clusterGraph.vertices.leftJoin(newVertices) {
       (id, oldValue, newValue) =>
         newValue match {
@@ -169,7 +170,7 @@ object ClusterWild_fixes_v04 {
     System.out.println(
       s"$x\t" +
         s"$maxDeg\t" +
-        s"${newVertices.count}\t" +
+        s"${numNewCenters}\t" +
         s"${time11 - time10}\t" +
         "<end>")
 
