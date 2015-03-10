@@ -44,7 +44,13 @@ object ClusterWildV03Dimitris {
 
 
 
-    var unclusterGraph: Graph[(Int), Int] = graph
+    //The following is needed for undirected (bi-directional edge) graphs
+    val vertexRDDs: VertexRDD[Int] = graph.vertices
+    var edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
+    // val graph: Graph[(Int), Int] = Graph(vertexRDDs,edgeRDDs).mapVertices( (id, _) => -100.toInt )
+
+
+    var unclusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs).mapVertices((id, _) => -100.toInt)
     var prevUnclusterGraph: Graph[(Int), Int] = null
     val epsilon: Double = 2
     var x: Int = 1
