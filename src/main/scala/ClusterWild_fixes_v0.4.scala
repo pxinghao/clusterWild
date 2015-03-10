@@ -58,8 +58,8 @@ object ClusterWild_fixes_v04 {
     val n = clusterGraph.numVertices.toFloat
 
     var prevClusterGraph: Graph[(Int), Int] = clusterGraph
-    val epsilon: Double = 0.5
-    var iterNum: Int = 1
+    val epsilon: Double = 1
+    var x: Int = 1
 
     var clusterUpdates: VertexRDD[(Int)] = null
     var randomSet: VertexRDD[(Int)] = null
@@ -78,80 +78,89 @@ object ClusterWild_fixes_v04 {
 
 
 
+    var centerID : Int = 0
 
+    var time0, time1, time2, time3, time4: Long = 0
 
 
 
     //TODO: change for to check for empty RDD
-    while (maxDeg >= 1) {
+    while (maxDeg>=1) {
 
-      val time0 = System.currentTimeMillis
+//      clusterGraph.cache()
 
-//      randomSet = clusterGraph.vertices.filter(v => v._2 == -100)
-//      randomSet = randomSet.mapValues(vId => {
-//        if (scala.util.Random.nextFloat < epsilon / maxDeg) -1; else -100;
-//      })
-//      randomSet = randomSet.filter { case (id, clusterID) => clusterID == -1} // keep the active set
-      randomSet = clusterGraph.vertices.filter(v => (v._2 == -100) && (scala.util.Random.nextFloat < epsilon / maxDeg))
+
+
+
+
+      time0 = System.currentTimeMillis
+
+      // randomSet = clusterGraph.vertices.filter(v => v._2 == -100)
+      // centerID = -math.abs(scala.util.Random.nextInt)
+      // randomSet = randomSet.mapValues( vId => {if (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat) centerID; else -100;})
+      // randomSet = randomSet.filter{case (id, clusterID) => clusterID == centerID} // keep the active set
+      randomSet = clusterGraph.vertices.filter(v => (v._2 == -100) && (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat))
       numNewCenters = randomSet.count
 
-      // prevUnclusterGraph = unclusterGraph
-      //
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => -iterNum).cache()
-      //
-      // prevUnclusterGraph.vertices.unpersist(false)
-      // prevUnclusterGraph.edges.unpersist(false)
+      time1 = System.currentTimeMillis()
+
+      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
+      clusterGraph.edges.foreachPartition(_ => {})
+
+      time2 = System.currentTimeMillis()
 
       clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
-          if (triplet.srcAttr == -iterNum & triplet.dstAttr == -100) {
+          if (triplet.srcAttr == centerID & triplet.dstAttr == -100){
             triplet.sendToDst(triplet.srcId.toInt)
           }
-        }, math.min(_, _)
+        }, math.min(_ , _)
       )
 
-      newVertices = clusterGraph.vertices.leftJoin(clusterUpdates) {
-        (id, oldValue, newValue) =>
-          newValue match {
-            case Some(x: Int) => x
-            case None => {
-              if (oldValue == -iterNum) id.toInt; else oldValue;
-            }
-          }
-      }
 
-      prevClusterGraph = clusterGraph
-      //
-      clusterGraph = clusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
-//      clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr).cache()
-      //
-      prevClusterGraph.vertices.unpersist(false)
-      prevClusterGraph.edges.unpersist(false)
-      clusterGraph.edges.foreachPartition(x => {})
+//      prevClusterGraph = clusterGraph
+      clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr).cache()
+      clusterGraph.edges.foreachPartition(_ => {})
+//      clusterGraph.vertices.count()
+//      prevClusterGraph.vertices.unpersist()
+//      prevClusterGraph.edges.unpersist()
 
-      if (iterNum % 3 == 0) maxDeg = math.round(maxDeg / 2);
+      time3 = System.currentTimeMillis()
 
-      if (maxDeg == 0) {
-        // Check if really maxDeg = 0
-        maxDegree = clusterGraph.aggregateMessages[Int](
-          triplet => {
-            if (triplet.dstAttr == -100 & triplet.srcAttr == -100) {
-              triplet.sendToDst(1)
-            }
-          }, _ + _).cache()
+//      if (x % math.round(math.log(n)) == 0) {
+//        maxDeg = math.round(maxDeg/2)
+//
+//        // clusterGraph.edges.count()
+//      }
+      maxDeg = clusterGraph.aggregateMessages[Int](
+           triplet => {
+               if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
+               }, _ + _).map( x => x._2).fold(0)((a,b) => math.max(a, b))
 
-        maxDeg = maxDegree.map(x => x._2).fold(0)((a, b) => math.max(a, b))
-      }
+//      if (x % 10 == 0){
+//        clusterGraph.checkpoint()
+//      }
 
 
-      val time1 = System.currentTimeMillis
+//      System.gc()
+      time4 = System.currentTimeMillis()
+
+
       System.out.println(
-        s"$iterNum\t" +
+        s"$x\t" +
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
-          s"${time1 - time0}\t" +
+          s"${time4-time0}\t" +
+          s"${time1-time0}\t" +
+          s"${time2-time1}\t" +
+          s"${time3-time2}\t" +
+          s"${time4-time3}\t" +
           "")
-      iterNum = iterNum + 1
+      x = x+1
+
+
+
+
     }
 
     //Take care of degree 0 nodes
@@ -170,7 +179,7 @@ object ClusterWild_fixes_v04 {
     val time11 = System.currentTimeMillis
 
     System.out.println(
-      s"$iterNum\t" +
+      s"$x\t" +
         s"$maxDeg\t" +
         s"${numNewCenters}\t" +
         s"${time11 - time10}\t" +
