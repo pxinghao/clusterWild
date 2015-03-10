@@ -171,7 +171,7 @@ object ClusterWild_fixes_v04 {
         s"$maxDeg\t" +
         s"${newVertices.count}\t" +
         s"${time11 - time10}\t" +
-        "")
+        "<end>")
 
   }
 }

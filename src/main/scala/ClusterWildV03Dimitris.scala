@@ -42,7 +42,7 @@ object ClusterWildV03Dimitris {
 
     System.out.println(s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions), ${graph.edges.count} edges (${graph.edges.partitions.length} partitions)")
 
-    
+
 
     var unclusterGraph: Graph[(Int), Int] = graph
     var prevUnclusterGraph: Graph[(Int), Int] = null
