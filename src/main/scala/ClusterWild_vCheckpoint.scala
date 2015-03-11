@@ -118,13 +118,12 @@ object ClusterWild_vCheckpoint {
 //      }.cache()
 
 
-//      maxDegree = clusterGraph.aggregateMessages[Int](
-//        triplet => {
-//          if (triplet.dstAttr == -100 & triplet.srcAttr == -100) {
-//            triplet.sendToDst(1)
-//          }
-//        }, _ + _)
-//      maxDeg = maxDegree.map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      maxDeg = clusterGraph.aggregateMessages[Int](
+        triplet => {
+          if (triplet.dstAttr == -100 & triplet.srcAttr == -100) {
+            triplet.sendToDst(1)
+          }
+        }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
 
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
