@@ -68,7 +68,8 @@ object ClusterWild_vCheckpoint {
 
     var times : Array[Long] = new Array[Long](100)
 
-    sc.setCheckpointDir("/Users/xinghao/Documents/tempcheckpoint")
+//    sc.setCheckpointDir("/Users/xinghao/Documents/tempcheckpoint")
+    sc.setCheckpointDir("/mnt/checkpoints/")
 
     var prevRankGraph: Graph[Int, Int] = null
     while (maxDeg > 0) {
