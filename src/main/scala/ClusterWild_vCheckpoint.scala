@@ -24,10 +24,20 @@ object ClusterWild_vCheckpoint {
       (name, value)
     }.toMap
 
-    val graphType: String = argmap.getOrElse("graphtype", "rmat").toString.toLowerCase
-    val rMatNumEdges: Int = argmap.getOrElse("rmatnumedges", 100000000).toString.toInt
-    val path: String = argmap.getOrElse("path", "graphs/astro.edges").toString
-    val numPartitions: Int = argmap.getOrElse("numpartitions", 640).toString.toInt
+    val graphType      : String = argmap.getOrElse("graphtype", "rmat").toLowerCase
+    val rMatNumEdges   : Int    = argmap.getOrElse("rmatnumedges", "100000000").toInt
+    val path           : String = argmap.getOrElse("path", "graphs/astro.edges")
+    val numPartitions  : Int    = argmap.getOrElse("numpartitions", "640").toInt
+    val epsilon        : Double = argmap.getOrElse("epsilon", "0.5").toDouble
+    val checkpointIter : Int    = argmap.getOrElse("numpartitions", "20").toInt
+
+    System.out.println(s"graphType      = $graphType")
+    System.out.println(s"rMatNumEdges   = $rMatNumEdges")
+    System.out.println(s"path           = $path")
+    System.out.println(s"numPartitions  = $numPartitions")
+    System.out.println(s"epsilon        = $epsilon")
+    System.out.println(s"checkpointIter = $checkpointIter")
+
 
     /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
@@ -43,7 +53,11 @@ object ClusterWild_vCheckpoint {
       else
         GraphLoader.edgeListFile(sc, path, false, numPartitions)
 
-    System.out.println(s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions), ${graph.edges.count} edges (${graph.edges.partitions.length} partitions)")
+    System.out.println(
+        s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
+      + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
+      + s"eps = $epsilon"
+    )
 
     //The following is needed for undirected (bi-directional edge) graphs
     val vertexRDDs: VertexRDD[Int] = graph.vertices
@@ -52,19 +66,17 @@ object ClusterWild_vCheckpoint {
     clusterGraph = clusterGraph.mapVertices((id, _) => -100.toInt)
 
     var centerID = 0
-    val epsilon: Double = 0.5
-    var maxDegree: VertexRDD[Int] = clusterGraph.aggregateMessages[Int](
+//    val epsilon: Double = 0.5
+    val maxDegree: VertexRDD[Int] = clusterGraph.aggregateMessages[Int](
       triplet => {
         if (triplet.dstAttr == -100 & triplet.srcAttr == -100) {
           triplet.sendToDst(1)
         }
       }, _ + _).cache()
     var maxDeg: Int = maxDegree.map(x => x._2).fold(0)((a, b) => math.max(a, b))
-//    var maxDeg : Int = 10
     var numNewCenters: Long = 0
 
     var iteration = 0
-    var numIter = 1000
 
     var times : Array[Long] = new Array[Long](100)
 
@@ -77,7 +89,7 @@ object ClusterWild_vCheckpoint {
       clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == -100) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
-//      randomSet.checkpoint()
+      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
 
       numNewCenters = randomSet.count
 
@@ -89,34 +101,27 @@ object ClusterWild_vCheckpoint {
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
-
-
-      // Compute the outgoing rank contributions of each vertex, perform local preaggregation, and
-      // do the final aggregation at the receiving vertices. Requires a shuffle for aggregation.
-//      val clusterUpdates = clusterGraph.aggregateMessages[Double](
-//        ctx => ctx.sendToDst(ctx.srcAttr * ctx.attr), _ + _, TripletFields.Src)
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
           if (triplet.srcAttr == centerID & triplet.dstAttr == -100) {
             triplet.sendToDst(triplet.srcId.toInt)
           }
         }, math.min(_, _)
-      )
+      ).cache()
 
-      clusterUpdates.cache()
-      clusterUpdates.checkpoint()
+      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
-      // Apply the final rank updates to get the new ranks, using join to preserve ranks of vertices
-      // that didn't receive a message. Requires a shuffle for broadcasting updated ranks to the
-      // edge partitions.
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
       }.cache()
-//      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
-//        (id, oldRank, msgSum) => (0.15 + (1.0 - 0.15) * msgSum).toInt
-//      }.cache()
 
+      if ((iteration+1) % checkpointIter == 0) {
+        clusterGraph.vertices.checkpoint()
+        clusterGraph.edges.checkpoint()
+        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+        clusterGraph.checkpoint()
+      }
 
       maxDeg = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -130,14 +135,6 @@ object ClusterWild_vCheckpoint {
       clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
-
-//      if (iteration == 5)
-//        clusterGraph = Graph(new TruncatedLineageRDD(clusterGraph.vertices), new TruncatedLineageRDD(clusterGraph.edges))
-
-//      clusterGraph.vertices.checkpoint()
-//      clusterGraph.edges.checkpoint()
-//      clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
-//      clusterGraph.checkpoint()
 
       times(1) = System.currentTimeMillis()
 
