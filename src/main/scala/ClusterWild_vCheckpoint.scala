@@ -29,7 +29,7 @@ object ClusterWild_vCheckpoint {
     val path           : String = argmap.getOrElse("path", "graphs/astro.edges")
     val numPartitions  : Int    = argmap.getOrElse("numpartitions", "640").toInt
     val epsilon        : Double = argmap.getOrElse("epsilon", "0.5").toDouble
-    val checkpointIter : Int    = argmap.getOrElse("numpartitions", "20").toInt
+    val checkpointIter : Int    = argmap.getOrElse("checkpointiter", "20").toInt
 
     System.out.println(s"graphType      = $graphType")
     System.out.println(s"rMatNumEdges   = $rMatNumEdges")
