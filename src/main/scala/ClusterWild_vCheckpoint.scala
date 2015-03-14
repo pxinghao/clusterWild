@@ -116,12 +116,12 @@ object ClusterWild_vCheckpoint {
         (vId, oldAttr, newAttr) => newAttr
       }.cache()
 
-      if ((iteration+1) % checkpointIter == 0) {
-        clusterGraph.vertices.checkpoint()
-        clusterGraph.edges.checkpoint()
-        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
-        clusterGraph.checkpoint()
-      }
+//      if ((iteration+1) % checkpointIter == 0) {
+//        clusterGraph.vertices.checkpoint()
+//        clusterGraph.edges.checkpoint()
+//        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+//        clusterGraph.checkpoint()
+//      }
 
       maxDeg = clusterGraph.aggregateMessages[Int](
         triplet => {
