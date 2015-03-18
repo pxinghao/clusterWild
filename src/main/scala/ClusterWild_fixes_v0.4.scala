@@ -30,7 +30,7 @@ object ClusterWild_fixes_v04 {
     val graphType     : String = argmap.getOrElse("graphtype", "rmat").toString.toLowerCase
     val rMatNumEdges  : Int    = argmap.getOrElse("rmatnumedges", 100000000).toString.toInt
     val path          : String = argmap.getOrElse("path", "graphs/astro.edges").toString
-    val numPartitions : Int    = argmap.getOrElse("numpartitions", 4).toString.toInt
+    val numPartitions : Int    = argmap.getOrElse("numpartitions", 640).toString.toInt
 
     /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
@@ -58,7 +58,7 @@ object ClusterWild_fixes_v04 {
     val n = clusterGraph.numVertices.toFloat
 
     var prevClusterGraph: Graph[(Int), Int] = clusterGraph
-    val epsilon: Double = 0.5
+    val epsilon: Double = 1
     var x: Int = 1
 
     var clusterUpdates: VertexRDD[(Int)] = null
@@ -78,70 +78,95 @@ object ClusterWild_fixes_v04 {
 
 
 
+    var centerID : Int = 0
 
+    var time0, time1, time2, time3, time4: Long = 0
 
 
 
     //TODO: change for to check for empty RDD
-    while (maxDeg >= 1) {
+    while (maxDeg>=1) {
 
-      val time0 = System.currentTimeMillis
+//      clusterGraph.cache()
 
-      randomSet = clusterGraph.vertices.filter(v => v._2 == -100)
-      randomSet = randomSet.mapValues(vId => {
-        if (scala.util.Random.nextFloat < epsilon / maxDeg) -1; else -100;
-      })
-      randomSet = randomSet.filter { case (id, clusterID) => clusterID == -1} // keep the active set
+
+
+
+
+      time0 = System.currentTimeMillis
+
+      // randomSet = clusterGraph.vertices.filter(v => v._2 == -100)
+      // centerID = -math.abs(scala.util.Random.nextInt)
+      // randomSet = randomSet.mapValues( vId => {if (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat) centerID; else -100;})
+      // randomSet = randomSet.filter{case (id, clusterID) => clusterID == centerID} // keep the active set
+      randomSet = clusterGraph.vertices.filter(v => (v._2 == -100) && (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat))
       numNewCenters = randomSet.count
 
-      // prevUnclusterGraph = unclusterGraph
-      //
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => -1).cache()
-      //
-      // prevUnclusterGraph.vertices.unpersist(false)
-      // prevUnclusterGraph.edges.unpersist(false)
+      time1 = System.currentTimeMillis()
+
+      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
+      clusterGraph.edges.foreachPartition(_ => {})
+
+      time2 = System.currentTimeMillis()
 
       clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
-          if (triplet.srcAttr == -1 & triplet.dstAttr == -100) {
+          if (triplet.srcAttr == centerID & triplet.dstAttr == -100){
             triplet.sendToDst(triplet.srcId.toInt)
           }
-        }, math.min(_, _)
+        }, math.min(_ , _)
       )
 
-      newVertices = clusterGraph.vertices.leftJoin(clusterUpdates) {
-        (id, oldValue, newValue) =>
-          newValue match {
-            case Some(x: Int) => x
-            case None => {
-              if (oldValue == -1) id.toInt; else oldValue;
-            }
-          }
-      }
 
-      prevClusterGraph = clusterGraph
-      //
-      clusterGraph = clusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
-      //
-      prevClusterGraph.vertices.unpersist(false)
-      prevClusterGraph.edges.unpersist(false)
-      clusterGraph.edges.foreachPartition(x => {})
+//      prevClusterGraph = clusterGraph
+      clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr).cache()
+      clusterGraph.edges.foreachPartition(_ => {})
+//      clusterGraph.vertices.count()
+//      prevClusterGraph.vertices.unpersist()
+//      prevClusterGraph.edges.unpersist()
 
-      if (x % 3 == 0) maxDeg = math.round(maxDeg / 2);
+      time3 = System.currentTimeMillis()
+
+//      if (x % math.round(math.log(n)) == 0) {
+//        maxDeg = math.round(maxDeg/2)
+//
+//        // clusterGraph.edges.count()
+//      }
+      maxDeg = clusterGraph.aggregateMessages[Int](
+           triplet => {
+               if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
+               }, _ + _).map( x => x._2).fold(0)((a,b) => math.max(a, b))
+
+//      if (x % 10 == 0){
+//        clusterGraph.checkpoint()
+//      }
 
 
-      val time1 = System.currentTimeMillis
+//      System.gc()
+      time4 = System.currentTimeMillis()
+
+
       System.out.println(
         s"$x\t" +
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
-          s"${time1 - time0}\t" +
+          s"${time4-time0}\t" +
+          s"${time1-time0}\t" +
+          s"${time2-time1}\t" +
+          s"${time3-time2}\t" +
+          s"${time4-time3}\t" +
           "")
-      x = x + 1
+      x = x+1
+
+
+
+
     }
-    clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+
     //Take care of degree 0 nodes
+    val time10 = System.currentTimeMillis
     newVertices = clusterGraph.subgraph(vpred = (vId, clusterID) => clusterID == -100).vertices
+    numNewCenters = newVertices.count
     newVertices = clusterGraph.vertices.leftJoin(newVertices) {
       (id, oldValue, newValue) =>
         newValue match {
@@ -150,5 +175,15 @@ object ClusterWild_fixes_v04 {
         }
     }
     clusterGraph = clusterGraph.joinVertices(newVertices)((vId, oldAttr, newAttr) => newAttr).cache()
+    clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+    val time11 = System.currentTimeMillis
+
+    System.out.println(
+      s"$x\t" +
+        s"$maxDeg\t" +
+        s"${numNewCenters}\t" +
+        s"${time11 - time10}\t" +
+        "<end>")
+
   }
 }
