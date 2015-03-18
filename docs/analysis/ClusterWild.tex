@@ -1,0 +1,610 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips15submit_e,times}
+%/\usepackage[usenames, dvipsnames]{color}
+\usepackage{soul}
+\usepackage{standalone}
+%\usepackage{mathpazo}
+\usepackage{verbatim}
+\usepackage{algorithmic, algorithm}
+
+%\usepackage{natbib}
+\usepackage{paralist}
+
+%\usepackage{tkz-euclide}
+\usepackage{mdwmath}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xfrac}
+\usepackage{mathtools}  
+
+\usepackage{tabulary}
+\usepackage{booktabs}
+
+\usepackage{epsfig}
+\usepackage{subfigure}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+
+% NIPS
+%\usepackage{nips14submit_e,times}
+%\usepackage{hyperref}
+\usepackage{url}
+%\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
+
+
+% TIKZ related
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage[utf8]{inputenc}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes, arrows, decorations.markings}
+\usetikzlibrary{calc}
+\usetikzlibrary{fit}
+
+
+
+%------Dimitris commands-------
+
+\newtheorem{theo}{Theorem}
+\newtheorem{introtheo}{Theorem}
+\newtheorem{prop}{Proposition}
+\newtheorem{defin}{Definition}
+\newtheorem{lem}{Lemma}
+\newtheorem{cor}{Corollary}
+\newtheorem{rem}{Remark}
+\newtheorem{asm}{Assumption}
+\newtheorem{property}{Property}
+\newcommand{\vect}{\text{vec}}
+\newcommand{\tr}{\text{tr}}
+\newcommand{\rank}{\text{rank}}
+\newcommand{\sign}{\text{sign}} 
+\newcommand{\diag}{\text{diag}}
+\newcommand{\blkdiag}{\text{blkdiag}}
+\newcommand{\GGG}{{\color{red}{\bf [GGG CHECK]}}}
+\newcommand{\sort}{\text{sort}}
+\newcommand{\Span}{\text{span}}
+\newcommand{\supp}{\text{supp}}
+\newcommand{\bsp}{\hspace{-0.14cm}}
+\newcommand{\T}{\intercal}
+% \newcommand{\dim}{\text{dim}}
+\newcommand{\eqdef}{\stackrel{\triangle}{=}}
+\newcommand{\G}{ \mathcal{G} } 
+\newcommand{\Gnp}{ \mathcal{G}\left(n,\frac{1}{2}\right) } 
+\newcommand{\Gnpk}{ {G}\left(n,\frac{1}{2}, k\right) }
+\newcommand{\opt}{\textsf{opt}}
+\newcommand{\A}{{\bf A}}
+\newcommand{\den}{\textsf{den}}
+\newcommand{\x}{{\bf x}}
+\newcommand{\y}{{\bf y}}
+\newcommand{\z}{{\bf z}}
+%\newcommand{\v}{{\bf v}}
+\newcommand{\U}{{\bf U}}
+\newcommand{\V}{{\bf V}}
+\newcommand{\Cv}{\mathcal{C}_v}
+\newcommand{\Cu}{\mathcal{C}_u}
+%\newcommand{\v}{{\bf v}}
+\newcommand{\OPT}{\mathsf{OPT}}
+\newcommand{\Tb}{\mathcal{T}_b}
+
+
+\newcommand{\WH}{{\color{red}{\bf [WOOHOO CHECK]. }}}
+%\icmltitlerunning{Finding Dense Subgraphs \\through Low-rank Approximations}
+
+
+
+
+%-----Dimitris commands-------
+
+\nipsfinalcopy % Uncomment for camera-ready version
+
+
+\begin{document}
+
+\title{ClusterWild! -- Coordination-Free Correlation Clustering on Graph Engines}
+
+
+
+\author{
+Xinghao Pan\\
+%              \affaddr{AMPLab}\\
+       UC Berkeley\\
+       \And
+%       \affaddr{1932 Wallamaloo Lane}\\
+%       \affaddr{Wallamaloo, New Zealand}\\
+       %\email{xinghao@berkeley.edu}
+Dimitris Papailiopoulos\\
+%\affaddr{AMPLab}\\
+{UC Berkeley}
+\And
+Samet Oymak\\
+%              \affaddr{AMPLab}\\
+{UC Berkeley}
+%\email{oymak@berkeley.edu}
+\AND
+Benjamin Recht\\
+{UC Berkeley}\\
+%\email{brecht@berkeley.edu}
+\And
+Kannan Ramchandran\\
+{UC Berkeley}\\
+%\email{kannanr@eecs.berkeley.edu}
+\And
+Michael I. Jordan\\
+{UC Berkeley}\\
+%\email{jordan@cs.berkeley.edu}
+} 
+
+\maketitle
+\begin{abstract}
+%The cost that CC tries to minimize is the number of erroneously clustered pairs.
+%Correlation clustering is an important tool in data mining with applications ranging from entity deduplication, to link classification in social networks, and others.
+Given a similarity graph between items, correlation clustering (CC) aims to group similar items together and dissimilar ones apart.
+%The cost function that CC aims to minimize is the number or dissimilar item pairs that lie in the same cluster plus similar pairs that did not end up in the same cluster.
+%One of the most popular CC algorithms is {\it{KwikCluster}}:  a simple peeling scheme
+%that performs reasonably well for relatively large graphs, 
+%that offers a 3-approximation ratio.
+%Inherently sequential in nature, 
+%Unfortunately, {\it{KwikCluster}} is inherently sequential and can require a large number of peeling rounds.
+%This can be a significant bottleneck when scaling up to big graphs.
+Recent proposals for distributed approaches to Correlation Clustering encounter  challenges in scaling up, due to significant overheads in establishing some form of consistency while processing vertices in parallel.
+% while sometimes they introduce a significant loss to the 3 approximation factor.
+
+We present {\it{ClusterWild!}}, a distributed coordination free CC algorithm that avoids all coordination costs at the expense of an arbitrarily small loss in the accuracy of the solution. 
+% as {\it{KwikCluster}}, 
+%ClusterWild! has minimal processing overheads and gracefully scales up to billion-edge graphs.
+The main idea behind  {\it{ClusterWild!}} is running multiple peeling threads concurrently, without enforce {\it any} form of consistency, or synchronization.
+%We enforce consistency through  {\it concurrency control}, a popular paradigm in database research.
+% and was recently introduced in machine learning.
+
+We implement ClusterWild! on GraphX, Apache Spark's API for graphs and graph-parallel computation.
+We provide extensive experiments on a cluster of 100 machines and demonstrate that {\it{ClusterWild!}} can scale up to billion-edge graphs where it beats the state of the art, both in terms of running time and network communication.
+% and observe that for up to 16 cores we get nearly linear speed-up compared to {\it{KwikCluster}}.
+
+\end{abstract}
+
+
+\section{Introduction}
+
+%
+Clustering items according to some notion of similarity is a major primitive in machine learning.
+{\it Correlation clustering} is a very basic clustering variant: given a similarity measure between pairs of items, CC aims to group these items in clusters so that the number of unsatisfied pairs is minimized.
+
+In the simplest setup, we are given a graph $\mathcal{G}$ on $n$ vertices, $+1$ weights on edges between similar items, and $-1$ weights on edges for dissimilar items. 
+Correlation clustering aims to generate clusters of items that minimize the number of erroneously clustered pairs, commonly referred to as the {\it number of disagreements}.
+In an output clustering, the number of disagreements corresponds to the number of ``$+$" edges cut by the clusters plus the number of ``$-$" edges inside the clusters.
+%Let ${\bf A}^+$ and ${\bf A}^-$ denote the adjacency matrices of `+' and `-' edges respectively, then CC can be stated as
+%\begin{align}
+%%\mathsf{CC:} &\nonumber\\
+%\mathsf{OPT} = &\text{ min} \sum_{i,j}A^+_{i,j}(1-{\bf x}^T_i{\bf x}_j)+\sum_{i,j}A^-_{i,j}{\bf x}^T_i{\bf x}_j\\
+%&\text{ s.t. }  {\bf x}_i \in \left\{{\bf e}_1,\ldots, {\bf e}_n\right\}\nonumber
+%\end{align}
+%where ${\bf e}_i$ is the $i$th column of the $n\times n$ identity matrix.
+%Observe that the variable vectors essentially denote membership in one of the clusters (by having a $1$ at a single position, the identification of a cluster).
+%Moreover, 
+In Figure 1, we give a simple example of a CC instance for a graph on 6 vertices.
+ \begin{figure}[h]
+% \centerline{ \includegraphics[width=1\columnwidth]{images/graph_example.pdf}}
+\caption{In the above graph, solid edges denote similarity, and dashed denote dissimilarity.
+Let the two clusters shown above be the output of a CC algorithm.
+The metric of interest (i.e., the number of disagreements) for the given clustering is $2$; we denote with red the edges that incur a cost.}
+\label{fig:graph_example}
+\end{figure}     
+
+Observe that the number of clusters {\it is not} given as a parameter to the problem, i.e., the algorithm can output an arbitrary number of clusters.
+This comes in sharp contrast to other clustering approaches such as $k$-means, or $k$-median, where the number of clusters needs to be a priori defined.
+
+Entity deduplication is one of the traditional motivations for correlation clustering. 
+Entity deduplication finds application in chat disentanglement, co-reference resolution, and spam detection~\cite{
+elmagarmid2007duplicate,
+arasu2009large,
+elsner2009bounding,
+hussain2013evaluation,
+bonchi2014correlation,chierichetti2014correlation}.
+In this problem, we assume that there are some entities (say, results of a keyword search), and a pairwise classifier that indicates (with a possible error), when two entities are the same.
+In the context of a keyword search, two results might refer to the same item, however, if they come from different sources the results will appear slightly different.
+%Although two entities might refer to the sa these entities originate from different sources, yet refer to the same item (say keyword search results from different sources), by drawing similarities between them, and 
+By building a similarity graph between these entities and by applying CC one hopes to cluster all duplicate entities in the same similarity class; in the context of keyword search, this would imply a more meaningful and compact list of results.
+%Then, on input the similarity graph, CC is expected to output the duplicate classes of entities, i.e., classes where all entities are approximately the same.
+%For example a document signed by the name ``D. Papailiopoulos" is similar to one signed by ``D.P." but dissimilar to ``X. Pan" or ``D. Papadopoulos".
+%In these problems, there is usually a ground truth, and CC aims to group items in classes of duplicates.
+
+
+
+%%\section{A simple 3-approximation}
+%KwikCluster, is arguably one of the simplest algorithms for CC that comes with provable performance guarantees \cite{ailon2008aggregating}.
+%The algorithm, at round $i$,  samples a vertex $v$ uniformly at random, it creates a cluster with the vertex and its positive neighborhood 
+%$$\mathcal{C}(v) = \left\{v\cup \Gamma^+(v)\right\}.$$
+%Then, it peels off of $G$ all vertices in $\mathcal{C}_i$ and all incident edges from the graph, and then repeats until the graph is empty.
+%Ailon et al., show in \cite{ailon2008aggregating} that KwikCluster achieves a $3$-approximation ratio.
+%The authors are able to estalbish the approximation result, by establishing the probability of picking strucures in the graph that necesarily yiled an error.
+
+
+%Another application lies in social network analysis.
+Correlation clustering is also useful in finding communities in signed networks, or classifying missing edges in opinion, or trust networks~\cite{yang2007community,cesa2012correlation}. 
+Given a network of social interactions, the weights on edges can indicate likes/dislikes, or for opinion networks agreements/disagreements between individuals.
+In this setup, CC aims to cluster individuals in groups of agreement, while having people that disagree in different clusters. 
+In the context of classifying missing edges in opinion networks, CC can be thought of as a way to ``guess" the missing edge signs.
+%Finally in machine learning applications, we can have a pairwise classifier between items, say images of dogs and cats, although sometime the pairwise classifier cannot identify that two items that belong in the same class.
+%\\-consensus clustering
+Further applications include gene clustering according to expression pattern similarity~\cite{ben1999clustering}, and consensus clustering~\cite{elsner2009bounding}.
+
+
+Arguably the simplest algorithm for CC is {\it{KwikCluster}}, a 3-approximation by \cite{ailon2008aggregating}.
+{\it{KwikCluster}}  works in the following way: pick a vertex $v$ at random, create a cluster that contains $v$ and its positive neighborhood $N^+(v)$, peel these vertices from the graph, and repeat. 
+Apart from its theoretical guarantees, {\it{KwikCluster}} has been experimentally shown to perform reasonably well, when combined with additional local improvement heuristics \cite{elsner2009bounding}.
+
+The main drawback of {\it{KwikCluster}} is its number of peeling rounds: 
+although its expected running time is $O(n+\mathsf{OPT})$ \cite{ailon2009correlation}, the algorithm can suffer from the fact that it is inherently sequential, and can require up to $O(n)$ rounds.
+This can be problematic when scaling up to large graphs, or when considering implementations in distributed paradigms like MapReduce.
+
+Recently, there have been efforts to develop scalable variants of {\it{KwikCluster}} \cite{bonchi2014correlation,
+chierichetti2014correlation}.
+In \cite{chierichetti2014correlation} a distributed peeling algorithm was presented in the context of MapReduce.
+Using an elegant analysis, the authors show that their algorithm achieves a $(3+O(\epsilon))$-approximation in $O\left(\sfrac{1}{\epsilon} \cdot\log n \cdot \log \Delta^+\right)$ rounds, where $\Delta^+$ is the maximum positive edge degree.
+A potential issue is that obtaining an approximation provably close to $3$ (i.e., close to that of {\it{KwikCluster}}) requires thousands of MapReduce rounds for large graphs: the leading constants in the asymptotic analysis of the algorithm are not negligible.
+Unfortunately, the number of rounds has been a known bottleneck for MapReduce implementations, with reasonable numbers varying between tens to a few hundred rounds.
+
+Additionally in \cite{bonchi2014correlation}, the rough details of a distributed algorithm were presented.
+This algorithm achieves the same approximation as {\it{KwikCluster}}.
+However, this algorithm is not yet published, hence we cannot present a fair and meaningful comparison.
+%\cite{bonchi2014correlation} claims that this algorithm has $O(\log n)$ MapReduce rounds, though we find in practice that hundreds of rounds are required for real graphs.
+It seems though that this algorithm performs significant redundant work in checking the status of the vertices in each round, with an expected $O(\log n)$ number of rounds.
+
+
+
+\paragraph{Our contributions.} 
+We present {\it{C4}}, a parallel correlation clustering algorithm that obtains the same 3-approximation as {\it{KwikCluster}}.
+Our algorithm has limited overheads and can gracefully scale up to billion-edge graphs.
+% when run on a multi-core machine.
+The main idea behind {\it{C4}} is that it allows multiple  peeling  threads that run concurrently.
+We show that if one enforces consistency among these peeling threads, then the output of {\it{C4}} is equivalent to the output of the serial {\it{KwikCluster}}.
+%The main idea running multiple peeling threads concurrently, while ensuring consistency among them without too much communication.
+We enforce consistency among the peeling threads through {\it concurrency control}, a notion that has been extensively studied in the context of databases.
+Concurrency control has been recently introduced as a means for consistent parallelization of inherently sequential machine learning algorithms~\cite{pan2013optimistic}.
+
+Using concurrency control, we are able to block peeling threads that can cause inconsistencies in the output solution.
+%It is easy to show that the number of blocks is relatively small for graphs with small average degree and a constant number of peeling threads.
+The main computational benefit of the algorithm is that blocks happen infrequently, when running on up to 16 cores.
+In theory, the expected number of total thread blocks is proportional to the graph's average positive degree times the number of cores.
+In practice, we observe that more than 99.9\% of peeling threads run without being blocked.
+Experimentally, this translates to an almost linear speed-up on up to 16 threads, when comparing to {\it{KwikCluster}}.
+% and was recently introduced in machine learning.
+
+We provide an extensive experimental evaluation of   {\it{C4}} and demonstrate that it can scale up to graphs with millions of vertices and more than a billion edges.
+We show that even in these large graphs  {\it{C4}} outputs a valid clustering of all vertices in less than five seconds, up to an order of magnitude faster than {\it{KwikCluster}}.
+We conclude that {\it{C4}}  is suitable for large-graph cases, where the number of peeling rounds renders {\it{KwikCluster}} slow, and the graph can still fit in main memory of a few machines.
+%In cases of larger graphs, a distributed implementation is required, that we are currently still working on.
+
+
+\section{Coordination-free Peeling}
+
+\begin{algorithm}[H]
+   \caption{ClusterWild!}
+          \footnotesize{
+\begin{algorithmic}[1]
+\STATE {\bf Input}: $G, \epsilon$
+\STATE $\pi=$ a random permutation of $\{1,\ldots, n\}$
+\WHILE{$|V|>0 $}
+\STATE Calculate $\Delta$, the maximum degree in $G$.
+\STATE Activate $P=\frac{\epsilon\cdot n}{\Delta}$ vertices at random.
+%each vertex with probability $p = \frac{\epsilon}{\Delta}$
+\STATE $\mathcal{A}$ = set of active vertices. 
+%\FOR{$v \in \mathcal{A}$}
+%\STATE Send $\pi(v)$ to unassigned friends
+%\ENDFOR
+\FOR{$u \in \Gamma( \mathcal{A})\backslash \mathcal{A}$}
+\STATE $\text{clusterID}(u) = \min \{\pi(v): v\in \mathcal{A}, u\in\Gamma^+(v)\}$
+\ENDFOR
+\STATE $V = V\backslash \{ \mathcal{A}\cup \Gamma( \mathcal{A})\}$
+\STATE $G = G(V)$
+\ENDWHILE
+ \STATE {\bf Output:} $\{\text{clusterID}(1),\ldots, \text{clusterID}(n)\}$.
+\end{algorithmic}
+}
+   \label{alg:rank_d_opt}
+ \end{algorithm}
+
+
+
+
+\subsection{Number of rounds}
+
+%At each round of the algorithm we pick 
+%$$P_i = \epsilon\cdot \frac{n_i}{\Delta_i}$$
+%random vertices, from the set of $n_i$ vertices that are still not  clustered by round $i$.
+%%\begin{lem}
+%Hence, the probability of activating any single (unclustered) vertex, at round $i$, is
+%$$\frac{\epsilon}{\Delta_i}.$$
+%%\end{lem}
+We now state the main lemma of this section.
+A similar technical idea was used in \cite{1} and \cite{1}. 
+%The main idea is that the probability space is divided into two events: either high degree vertices get their degrees halved after some rounds, or they become part of a cluster.
+%The main idea of the lemma
+\begin{lem}
+Let $v$ be a vertex with degree at least 
+$\Delta_i/2$, during round $i$, where $\Delta_i$ is the maximum degree at round $i$.
+Then, after $t$ rounds, either $v$ has degree strictly less than $\Delta_i/2$, or the probability that $v$ is still not clustered after $t$ rounds is at most
+$e^{-t\cdot \epsilon /2}.$
+\end{lem}
+
+
+\begin{proof}
+We wish to upper bound the probablity
+{\small 
+\begin{align*}
+%q_t = 
+\Pr\left\{\text{$v$ not clustered by round $i+t$}\left| \deg_{i+j}(v) \ge \frac{\Delta_i}{2}, 1\le j\le t \right.\right\}.
+\end{align*}
+}Observe that the above event happens either if no neighbors of $v$ become activated by round $i+t$, or if $v$ itself does not become activated.
+Hence, $q_t$ can be upper bounded by the probability that no neighbors of $v$ become activated by round $i+t$.
+
+In the following, let $d_{i+j}$ denote the degree of vertex $v$ at roudn $i+j$;
+for simplicity we drop the round indices on $n$ and $P$.
+The probability, per round, that no neighbors of $v$ become activated is equal to\footnote{this follows from a simple calculation on the pdf of the hypergeometric distribution.}
+\begin{align*}
+&\frac{{n-d_{i+j}\choose P}}{{n\choose P}}
+%& = \frac{\frac{(n-d_{i+j})!}{P!(n-d_{i+j}-P)!} }{\frac{n!}{P!(n-P)!}}\\
+% = \frac{(n-d_{i+j})!\cdot (n-P)!}{n!\cdot (n-d_{i+j}-P)! }\\
+= \frac{ (n-P)!}{ (n-P-d_{i+j})! }\cdot \frac{(n-d_{i+j})!}{n!}\\
+&= \frac{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t-P)}{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t)}= \prod_{t=1}^{d_{i+j}} \frac{n-d_{i+1}+t-P}{n-d_{i+1}+t}\\
+&= \prod_{t=1}^{d_{i+j}}\left(1- \frac{P}{n-d_{i+1}+t}\right)\le \left(1- \frac{P}{n}\right)^{d_{i+j}}\\
+&\le \left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}= \left[\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/\epsilon}\right]^{\epsilon/2}
+\le e^{-\epsilon/2}.
+%\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
+\end{align*}
+%The probability that a single neighbor of $v$ is active during round $i+j$ is $\epsilon/\Delta_{i+j}$.
+%Hence, the probability that $v$ is not clustered during  round $i+j$ is at most 
+%$$1-\text{deg}_{i+j}(v)\cdot \frac{\epsilon}{\Delta_{i+j}}.$$
+%above probability is less than the probability that 
+%Let assume that $v$ is a vertex of degree at least $\Delta_i/2$.
+%$$\frac{\Delta_i}{2}\cdot \epsilon\cdot \frac{1}{\Delta_i}$$.
+where the last inequality is due to the fact that 
+$$(1-x)^{1/x}<e^{-1}\text{ for all }x\le 1.$$
+Therefore, the probability of vertex $v$ failing to be clustered after $t$ rounds is at most
+%\begin{align*}
+$q_t\le e^{-t\cdot \epsilon /2}$,
+%1-q_t& = \prod_{j=1}^t \left(1-\text{deg}_{i+j}(v)\cdot \frac{\epsilon}{\Delta_{i+j}}\right)\\
+%& \le \prod_{j=1}^t \left(1-\frac{\Delta_i}{2}\cdot \frac{\epsilon}{\Delta_{i}}\right)=\left(1- \frac{\epsilon}{2}\right)^t,
+%\end{align*}
+and the result follows.
+\end{proof}
+
+
+Using the above lemma we get our first theorem.
+
+\begin{theo}
+ClusterWild! completes after at most 
+$$\frac{2}{\epsilon} \cdot \ln\left(\frac{n}{\delta}\right) \cdot \log \Delta$$ 
+rounds with probability at least $1-\delta$.
+\end{theo}
+\begin{proof}
+Due to the previous lemma, we have that for any round $i$, the probability that any vertex has degree more than $\Delta_i/2$ after $t$ rounds is at most $n\cdot e^{-t\cdot \epsilon /2}$, due to a simple union bound.
+If we want that that probability to be smaller than $\delta$, then
+\begin{align*}
+n\cdot e^{-t\cdot \epsilon /2} &< \delta
+\Leftrightarrow \ln n-t\cdot \epsilon /2 < \ln(\delta)
+%\Leftrightarrow t &> \frac{\ln(1/\delta)+\log n}{\ln \left(1- \frac{\epsilon}{2}\right)}\\
+\Leftrightarrow t > \frac{2}{\epsilon}\cdot\ln(n/\delta)
+\end{align*}
+Hence, with probability $1-\delta$, after $\frac{2}{\epsilon}\cdot\ln(n/\delta)$ rounds either all nodes of degree greater than $\Delta/2$ are clustered, or the maximum degree is decreased by half.
+Applying this argument $\log\Delta$ times yields the result, as the maximum degree of the remaining graph becomes $1$.
+\end{proof}
+
+
+
+
+\subsection{Approximation Guarantees}
+One can view the execution of ClusterWild! on $G$ as having KwikCluster run on a ``noisy version" of $G$.
+A main issues is that KwikCluster never allows two cluster centers being friends on the original graph.
+Hence, since ClusterWild! ignores these edges among active vertices, one can view these edges as ``adverserially" deleted.
+The major technical contribution of this work is to quantify how these ``ignored" edges affect the quality of the output solution.
+
+Before we proceed, let us define the bad combinatorial structures are charged for the cost of our solution.
+
+
+\begin{defin}
+Let us define as a {\it bad triangle}, a set of three vertices in $G$ such that two pairs are joined with a positive edge and one pair is joined with a negative edge. 
+%An example of a bad triangle is given below.
+\end{defin}
+
+The following simple lemma is useful in quantifying the cost of the output clustering for {\it any} peeling algorithm.
+
+\begin{lem}
+The cost of any greedy algorithm that picks a vertex $v$  (irrespective of the sampling order), creates $\mathcal{C}_v$, peels it away and repeats, is equal to the number of bad triangles adjacent to each cluster center $v$.
+\end{lem}
+
+
+Let us now consider the set of all cluster centers generated by ClusterWild!; call these vertices $\mathcal{C}_{\text{CW}}$.
+Then, consider the graph $G'$ that is generated by deleting all edges between $\mathcal{C}_{\text{CW}}$.
+Observe that this is a random graph, since the set of edges deleted depends on the specific random sampling that is performed in ClusterWild!.
+Let $\mathcal{E}_{del}$ denote the set of edges deleted in this new graph $G'$.
+We will use the following simple technical proposition to quantify how many more bad triangles $G'$ has compared to $G$.
+
+\begin{prop}
+Given any graph $G$ with positive and negative edges, then let us obtain a graph $G_e$ where we have removed a single edge, $e$ from $G$.
+Then, the $G_e$ has at most $\Delta$ more bad triangles compared to $G$.
+\end{prop}
+
+
+Then, the total number of bad triangles generated by this algorithm is upper bounded by $T_{\text{old}}$ the expected number of triangles adjacent to each pivot plus all bad triangles triangles created due to the edges deleted $T_{\text{new}}$.
+This might be a loose bound, but good enough for our purposes.
+
+
+Since the algorithm is randomized, a way to bound the expected number is
+\begin{equation}
+\mathbb{E}\{T_{\text{old}}+T_{\text{new}}\} \le \mathbb{E}\left\{\sum_{t\in\Tb} {\bf 1}_{\mathcal{A}_t}+T_{\text{new}}\right\}
+\end{equation}
+where
+\begin{align*}
+\mathcal{A}_t = \{&\text{$t=(i,j,k)$ is a bad triangle in $G$}, \\
+&\text{all $i,j,k$ are part of the current graph}, \\
+&\text{at least one of $i,j,k$ is a pivot}\}.
+\end{align*}
+Observe that the above even over counts triangles, as it can charge the same bad triangle to more than one pivots.
+This means that the event of an old triangles picked by a single pivot, is upper bounded by the event that it is picked by multiple pivots.
+Hence, we have
+\begin{align}
+\mathbb{E}\left\{T_{\text{new}}\right\}& \le {P\choose 2} \cdot \frac{E}{{n \choose 2}}\cdot 2\cdot \Delta \\
+&\le 2\cdot P^2\cdot \frac{E}{n^2}\cdot (2\cdot \Delta)
+\end{align}
+Let $P= \epsilon \frac{n}{\Delta}$.
+Then,
+$$\mathbb{E}\left\{T_{\text{new}}\right\} \le \epsilon^2 \cdot \frac{n^2}{\Delta^2}\cdot  \frac{E}{n^2}\cdot 2\cdot \Delta
+\le 2\cdot \epsilon^2\cdot \frac{E}{\Delta}
+\le 2\cdot \epsilon^2 \cdot n.$$
+
+Now we would like to bound the following probability:
+\begin{align*}
+&\Pr\left\{
+\left.v \cap \mathcal{A} \neq\emptyset\right|  \mathcal{S}\cap\mathcal{A} \neq\emptyset
+\right\} \\
+&= \frac{\Pr\left\{v\in\mathcal{A}\right\}\cdot \Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \left|v\in\mathcal{A} \right.\right\}}{\Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \right\}}\\
+&= \frac{\Pr\left\{v\in\mathcal{A}\right\}}{\Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \right\}}=\frac{\Pr\left\{v\in\mathcal{A}\right\}}{1-\Pr\left\{\mathcal{S}\cap\mathcal{A} =\emptyset\right\}},
+%&\le \frac{\sfrac{\epsilon}{\Delta}}{1-(1-\sfrac{|S|}{n})^{\sfrac{\epsilon\cdot n}{\Delta}}}
+\end{align*}
+Observe that 
+$\Pr\left\{v\in\mathcal{A}\right\} = \frac{\epsilon}{\Delta}$, hence we need to upper bound $\Pr\left\{\mathcal{S}\cap\mathcal{A} =\emptyset\right\}$.
+We will follow the same manner as the previous section.
+The probability, per round, that no neighbors nodes in $\mathcal{S}$ become activated is equal to
+\begin{align*}
+\frac{{n-|\mathcal{S}|\choose P}}{{n\choose P}}
+%& = \frac{\frac{(n-d_{i+j})!}{P!(n-d_{i+j}-P)!} }{\frac{n!}{P!(n-P)!}}\\
+% = \frac{(n-d_{i+j})!\cdot (n-P)!}{n!\cdot (n-d_{i+j}-P)! }\\
+%&= \frac{(n-P-d_{i+j})!}{n!}\cdot  \frac{ (n-P)!}{ (n-P-d_{i+j})! }\\
+%&= \frac{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t-P)}{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t)}\\
+%&= \prod_{t=1}^{d_{i+j}} \frac{n-d_{i+1}+t-P}{n-d_{i+1}+t}\\
+&= \prod_{t=1}^{|\mathcal{S}|}\left(1- \frac{P}{n-|\mathcal{S}|+t}\right)\le \left(1- \frac{P}{n}\right)^{|\mathcal{S}|}\\
+&
+%\le \left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
+= \left[\left(1- \frac{P}{n}\right)^{n/P}\right]^{|\mathcal{S}|n/P}
+\le \left(\frac{1}{e}\right)^{|\mathcal{S}|n/P}.
+%\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
+\end{align*}
+Hence, the probability can be upper bounded as
+\begin{align*}
+|\mathcal{S}|\Pr\left\{
+\left.v \cap \mathcal{A} \neq\emptyset\right|  \mathcal{S}\cap\mathcal{A} \neq\emptyset
+\right\} 
+&\le \frac{\epsilon\cdot |\mathcal{S}|/\Delta}{1-e^{-|\mathcal{S}|n/(\epsilon n/\Delta)}}\\
+&= \frac{\epsilon\cdot \sfrac{|\mathcal{S}|}{\Delta}}{1-e^{-\epsilon\cdot \sfrac{|\mathcal{S}|}{\Delta}}}
+\end{align*}
+We know that $|\mathcal{S}|\le 2\cdot\Delta+2$ and also $\epsilon\le 1$.
+Then, 
+$$0\le \epsilon\cdot \frac{|\mathcal{S}|}{\Delta}\le\epsilon\cdot \left(2+\frac{2}{\Delta}\right)\le 4 $$
+
+Hence, we have 
+
+\begin{align*}
+%\mathbb{E}\{Cost_{\text{ClusterWild!}}\} = 
+&\left(1+2\cdot \frac{4\cdot \epsilon }{1-e^{-4\cdot \epsilon}}\right)\cdot \OPT+\epsilon\cdot n\cdot \ln(n/\delta)\cdot \log\Delta \\
+&\le \left(3+7\cdot\epsilon\right)\cdot \OPT+\epsilon\cdot n\cdot \log^2\sfrac{n}{\delta}
+\end{align*}
+
+
+%\section{Distributed KwikCluster}
+%\subsubsection{Size of Longest dependency chain}
+%\subsubsection{number of rounds}
+%\subsubsection{Approximation Guarantee}
+%
+
+
+
+%\bibliography{cc}
+%\bibliographystyle{icml2014}
+
+\section{GraphX Implementation}
+
+\section{Experiments}
+
+\section{Prior Work}
+Correlation clustering was formally introduced by Bansal et al.~\cite{bansal2002correlation}.
+In the general case, minimizing disagreements is NP-hard and hard to approximate within an arbitrarily small constant (APX-hard)~\cite{bansal2002correlation,charikar2003clustering}.
+There are two variations of the problem: 
+{\it i)} CC on complete graphs where all edges are present and all weights are $\pm1$, and 
+{\it ii)} CC on general graphs with arbitrary edge weights. % and some of the edges missing.
+Both problems are hard, however the general graph setup seems fundamentally harder.
+The best known approximation ratio for the latter is $O(\log n)$, and a reduction to the minimum multicut problem indicates that any improvement to that requires fundamental breakthroughs in theoretical algorithms \cite{demaine2006correlation}.
+
+In the case of complete unweighted graphs, a long series of results establishes 
+a 2.5 approximation via a rounded linear program (LP)~\cite{ailon2008aggregating}.
+%while a recent result establishes a 2.06 approximation using an elegant rounding to the same LP relaxation~\cite{makarychev2014algorithms}. 
+%that the best approximation is 2.06 using a carefully rounded LP, with the same LP and a simpler rounding leading to a 2.5 ratio.
+By avoiding the expensive LP, and by just using the rounding procedure of \cite{ailon2008aggregating} as a basis for a greedy algorithm yields {\it{KwikCluster}}:
+a 3 approximation for CC on complete unweighted graphs.
+
+
+\section{Conclusions and Future Directions}
+
+
+\section{Acknowledgments}
+This research is supported in part by NSF CISE Expeditions Award CCF-1139158, LBNL Award 7076018, and DARPA XData Award FA8750-12-2-0331, and  gifts from Amazon Web Services, Google, SAP,  The Thomas and Stacey Siebel Foundation, Adobe, Apple, Inc., Bosch, C3Energy, Cisco, Cloudera, EMC, Ericsson, Facebook, GameOnTalis, Guavus, HP, Huawei, Intel, Microsoft, NetApp, Pivotal, Splunk, Virdata, VMware, and Yahoo!.
+\appendix
+
+%\section{Proof of Greedy}
+%
+%\begin{theo}[\cite{ailon2008aggregating}]
+%KwikCluster achieves a $3$-approximation (in expectation).
+%\end{theo}
+%\begin{proof}
+%Let us define the event 
+%\begin{align*}
+%\mathcal{A}_t = \{&\text{$t=(i,j,k)$ is a bad triangle}, \\
+%&\text{all $i,j,k$ are part of the current graph}, \\
+%&\text{at least one of $i,j,k$ is a pivot}\}.
+%\end{align*}
+%and let $p_t$ denote its probability.
+%Then, the expected cost of KwikCluster is
+%\begin{align*}
+%\mathbb{E}\{cost_{\text{KC}}\} = \mathbb{E}\left\{\sum_{t \in \mathcal{T}_b} \mathbf{1}_{\mathcal{A}_t} \right\} = \sum_{t \in \mathcal{T}_b} p_t.
+%\end{align*}
+%Observe that we can appopriately bound the optimal number of dissagrements.
+%Let $\mathcal{B}_*$ be one (of the possibly many) sets of edges that attribute a $+1$ int he cost of an optimal algorithm.
+%Moreover, let a $\{\beta_t\}_{t=1}^{|\mathcal{T}_b|}$ be a set weights on bad triangles that satisfy the following packing inequalities
+%\begin{align*}
+%\forall e,\; \sum_{t\ni e,\; t \in \Tb} \beta_t \le 1.
+%\end{align*}
+%Then,
+%\begin{align*}
+%\OPT &= |\mathcal{B}_*| = \sum_{e \in \mathcal{B}_*} 1 \ge \sum_{e \in \mathcal{B}_*} \sum_{t\in \mathcal{T}_b} \beta_t\\
+%& \ge \sum_{t\in \mathcal{T}_b} \underbrace{|\mathcal{B}_*\cap t|}_{\ge1} \beta_t \ge \sum_{t\in \mathcal{T}_b} \beta_t
+%\end{align*}
+%Hence, if there exist an algorithm with probabilities on bad triangles that satisfy $\gamma_t = p_t/\alpha$, 
+%\begin{align*}
+%\forall e,\; \sum_{t\ni e,\; t \in \Tb} \gamma_t \le 1.
+%\end{align*}
+%then that algorithm obtains an $\alpha$-approximation.
+%Now let us define the even that a specific edge $e = (i,j)$ contributes to the cost of the greedy $\mathcal{C}_e$.
+%Then, 
+%$$\Pr\left\{\bigcup_{t\in \Tb} \left\{\mathcal{C}_e \wedge \mathcal{A}_t\right\}\right\}=\sum_{t\in \Tb}\Pr \left\{\mathcal{C}_e \wedge \mathcal{A}_t\right\}\le 1$$
+%since an edge that contributed to the cost, can only be attributed to a single bad triangle.
+%Moreover, we have 
+%$$\Pr \left\{\mathcal{C}_e \wedge \mathcal{A}_t\right\}
+% = \Pr \left\{\mathcal{C}_e \left| \mathcal{A}_t\right. \right\} \Pr\{\mathcal{A}_t\}
+%=\Pr \left\{\mathcal{C}_e \left| \mathcal{A}_t\right. \right\}\cdot p_t 
+% $$
+% and $\Pr \left\{\mathcal{C}_e \left| \mathcal{A}_t\right. \right\}=\frac{1}{3}$, since all edges of a bad triangle adjacent to a pivot are equally likely to contribute to the cost of KwikCluster.
+% Hence, for all edges $e$ we have
+% $$\sum_{t\in \Tb}\frac{1}{3}p_t\le 1$$
+% which implies that KwikCluster is a $3$-approximation in expectation.
+%\end{proof}
+%
+%\subsubsection{Worst-case instance}
+
+
+\section{Proof of Lemma}
+\begin{proof}
+Consider the first step of the algorithm , for simplicity, and without loss of generality.
+Let us define as $T_{\text{in}}$ the  number of vertex pairs inside $\mathcal{C}_v$ that are not friends (i.e., they are joined by a negative edge).
+Moreover, let $T_{\text{out}}$ denote the number of vertices outside $\mathcal{C}_v$ that are friends with vertices inside $\mathcal{C}_v$.
+Then, the number of disagreements (i..e, number of misplaced pairs of vertices) generated by cluster $\mathcal{C}_v$, is equal to $T_{\text{in}}+T_{\text{in}}$.
+
+Observe that all the $T_{\text{in}}$ edges are negative, and all $T_{\text{out}}$ are positive ones.
+Let for example $(u,w)$ be one of the $T_{\text{in}}$ negative edges inside $\Cv$, hence both $u,w$ belong to $\Cv$ (i.e., are friends with $v$).
+Then, $(u,v,w)$ forms a {\it bad triangle}.
+Similarly, for every edge that is incident to a vertex in $\Cv$, with one end point say $u'\in \Cv$ and one $w'\in V\backslash v$, the triangle formed by $(v,u',w')$, is also a bad triangle.
+
+Hence, all edges that are accounted for in the final cost of the algorithm (i..e, total number of disagreements) are equal to the $T_{\text{in}}+T_{\text{out}}$ bad triangles that include these edges and each cluster center per round.
+\end{proof}
+
+\end{document}
