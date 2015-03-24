@@ -7,9 +7,9 @@ import org.apache.spark.rdd.RDD
 import scala.collection.immutable.Map
 
 /**
- * Created by xinghao on 3/10/15.
+ * Created by xinghao on 3/24/15.
  */
-object ClusterWild_vCheckpoint {
+object CDK_vCheckpoint {
   def main(args: Array[String]) = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
@@ -38,7 +38,7 @@ object ClusterWild_vCheckpoint {
     System.out.println(s"epsilon        = $epsilon")
     System.out.println(s"checkpointIter = $checkpointIter")
 
-
+    
     /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => initID.toInt )
 
@@ -46,7 +46,7 @@ object ClusterWild_vCheckpoint {
 //    val numPartitions = 4
 //    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numPartitions)
     */
-    
+
     val initID   : Int = -100
     val centerID : Int = -200
 
@@ -57,15 +57,16 @@ object ClusterWild_vCheckpoint {
         GraphLoader.edgeListFile(sc, path, false, numPartitions)
 
     System.out.println(
-        s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
-      + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
-      + s"eps = $epsilon"
+      s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
+        + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
+        + s"eps = $epsilon"
     )
 
     //The following is needed for undirected (bi-directional edge) graphs
     val vertexRDDs: VertexRDD[Int] = graph.vertices
     val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
+    var hasFriends: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
 //    val epsilon: Double = 0.5
@@ -102,6 +103,19 @@ object ClusterWild_vCheckpoint {
       clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
+
+      //Turn-off active nodes that are friends
+      // activeSubgraph = unclusterGraph.subgraph(vpred = (id, attr) => attr == -1).cache()
+      // hasFriends = unclusterGraph.degrees.filter{case (id, u) => u > 0}.cache()
+      hasFriends = clusterGraph.aggregateMessages[Int](
+        triplet => {
+          if (triplet.dstAttr == -1 & triplet.srcAttr == -1) {
+            triplet.sendToDst(1)
+          }
+        }, math.min(_, _)
+      )
+      clusterGraph = clusterGraph.joinVertices(hasFriends)((vId, attr, active) => -100).cache()
+
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -141,11 +155,11 @@ object ClusterWild_vCheckpoint {
       times(1) = System.currentTimeMillis()
 
       System.out.println(
-      s"$iteration\t" +
-        s"$maxDeg\t" +
-        s"$numNewCenters\t" +
-      s"${times(1)-times(0)}\t" +
-      "")
+        s"$iteration\t" +
+          s"$maxDeg\t" +
+          s"$numNewCenters\t" +
+          s"${times(1)-times(0)}\t" +
+          "")
 
 
       iteration += 1

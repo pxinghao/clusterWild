@@ -8,6 +8,10 @@ import org.apache.spark.rdd.RDD
  */
 object AuxiliaryFunctions {
 
+  def setZeroDegreeToCenter(graph: Graph[Int, Int], zeroDegreeID: Int, centerID: Int): Graph[Int, Int] = {
+    graph.mapVertices[Int]((vid, attr) => if (attr == zeroDegreeID) centerID else attr)
+  }
+
   def setCenterAttrToNegativeID(graph: Graph[Int, Int]): Graph[Int, Int] = {
     graph.mapVertices[Int]((vid, attr) => if (attr <= 0) -vid.toInt else attr)
   }
