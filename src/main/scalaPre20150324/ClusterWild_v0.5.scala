@@ -17,8 +17,8 @@ Logger.getLogger("akka").setLevel(Level.OFF)
 
 // var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => -100.toInt )
 
-val path = "/Users/dimitris/Documents/graphs/astro.txt"
-val numParitions = 2
+val path = "/Users/dimitris/Documents/graphs/dblp.txt"
+val numParitions = 8
 val graphInit: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numParitions)
 // clusterGraph = clusterGraph.mapVertices( (id, _) => -100.toInt )
 //The following is needed for undirected (bi-directional edge) graphs
@@ -47,17 +47,21 @@ var maxDeg: Int = maxDegree.map( x => x._2).fold(0)((a,b) => math.max(a, b))
 var centerID: Int = 0
         
 
+var time0: Long = 0
+var time1: Long = 0
+
+
 
 //TODO: change for to check for empty RDD
 while (maxDeg>=1) {
 
-    clusterGraph.cache()
+    // clusterGraph.cache()
 
     
 
 
 
-    val time0 = System.currentTimeMillis
+    time0 = System.currentTimeMillis
 
     // randomSet = clusterGraph.vertices.filter(v => v._2 == -100)  
     // centerID = -math.abs(scala.util.Random.nextInt)
@@ -66,7 +70,8 @@ while (maxDeg>=1) {
     randomSet = clusterGraph.vertices.filter(v => (v._2 == -100) && (scala.util.Random.nextFloat < epsilon/maxDeg.toFloat)).cache()
     numNewCenters = randomSet.count 
 
-    clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
+    clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
+    clusterGraph.cache()
     
     clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -74,27 +79,31 @@ while (maxDeg>=1) {
                 triplet.sendToDst(triplet.srcId.toInt) 
             }
             }, math.min(_ , _)
-    ).cache()
+    )
 
 
     
-    clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr).cache()    
-    clusterGraph.vertices.count()
+    clusterGraph = clusterGraph.joinVertices(clusterUpdates)((vId, oldAttr, newAttr) => newAttr)    
+    // clusterGraph.vertices.count()
+    clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+    clusterGraph.cache()
 
-    if (x % math.round(math.log(n)) == 0) {
-      maxDeg = math.round(maxDeg/2)
+    // if (x % math.round(math.log(n)) == 0) {
+    //   maxDeg = math.round(maxDeg/2)
       
-      // clusterGraph.edges.count()
-    }
-    // maxDegree= clusterGraph.aggregateMessages[Int](
-    //     triplet => {
-    //         if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
-    //         }, _ + _).cache()
+    //   // clusterGraph.edges.count()
+    // }
+    
+    maxDegree= clusterGraph.aggregateMessages[Int](
+        triplet => {
+            if ( triplet.dstAttr == -100& triplet.srcAttr == -100){ triplet.sendToDst(1) }
+            }, _ + _).cache()
 
-    // maxDeg = maxDegree.map( x => x._2).fold(0)((a,b) => math.max(a, b))
+    maxDeg = maxDegree.map( x => x._2).fold(0)((a,b) => math.max(a, b))
 
 
-    val time1 = System.currentTimeMillis
+    
+    time1 = System.currentTimeMillis
     System.out.println(
       s"$x\t" +
       s"$maxDeg\t" +
