@@ -153,10 +153,14 @@ object CDK_vCheckpoint {
         }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
 
       if ((iteration+1) % checkpointIter == 0) {
+        prevRankGraph = clusterGraph
         clusterGraph.vertices.checkpoint()
         clusterGraph.edges.checkpoint()
         clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
+        clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+        prevRankGraph.vertices.unpersist(false)
+        prevRankGraph.edges.unpersist(false)
       }
 
 //      prevRankGraph = clusterGraph
