@@ -172,6 +172,7 @@ object CDK_vCheckpoint {
       times(1) = System.currentTimeMillis()
 
       System.out.println(
+          "qq\t" +
           s"$iteration\t" +
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
