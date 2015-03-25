@@ -90,8 +90,8 @@ object ClusterWild_vCheckpoint {
     var prevRankGraph: Graph[Int, Int] = null
     while (maxDeg > 0) {
       times(0) = System.currentTimeMillis()
-//      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
-      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("rm", "-rf", checkpointDir).!
+      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
+//      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("rm", "-rf", checkpointDir).!
 
       clusterGraph.cache()
 
