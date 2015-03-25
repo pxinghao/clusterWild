@@ -5,6 +5,7 @@ import org.apache.spark.graphx.util.GraphGenerators
 import org.apache.spark.rdd.RDD
 
 import scala.collection.immutable.Map
+import scala.sys.process._
 
 /**
  * Created by xinghao on 3/24/15.
@@ -24,12 +25,15 @@ object CDK_vCheckpoint {
       (name, value)
     }.toMap
 
-    val graphType      : String = argmap.getOrElse("graphtype", "rmat").toLowerCase
-    val rMatNumEdges   : Int    = argmap.getOrElse("rmatnumedges", "100000000").toInt
-    val path           : String = argmap.getOrElse("path", "graphs/astro.edges")
-    val numPartitions  : Int    = argmap.getOrElse("numpartitions", "640").toInt
-    val epsilon        : Double = argmap.getOrElse("epsilon", "0.5").toDouble
-    val checkpointIter : Int    = argmap.getOrElse("checkpointiter", "20").toInt
+    val graphType       : String  = argmap.getOrElse("graphtype", "rmat").toLowerCase
+    val rMatNumEdges    : Int     = argmap.getOrElse("rmatnumedges", "100000000").toInt
+    val path            : String  = argmap.getOrElse("path", "graphs/astro.edges")
+    val numPartitions   : Int     = argmap.getOrElse("numpartitions", "640").toInt
+    val epsilon         : Double  = argmap.getOrElse("epsilon", "0.5").toDouble
+    val checkpointIter  : Int     = argmap.getOrElse("checkpointiter", "20").toInt
+    val checkpointDir   : String  = argmap.getOrElse("checkpointdir", "/mnt/checkpoints/")
+    val checkpointClean : Boolean = argmap.getOrElse("checkpointclean", "true").toBoolean
+//    val checkpointDir  : String = argmap.getOrElse("checkpointdir", "/Users/xinghao/Documents/tempcheckpoint")
 
     System.out.println(s"graphType      = $graphType")
     System.out.println(s"rMatNumEdges   = $rMatNumEdges")
@@ -38,7 +42,6 @@ object CDK_vCheckpoint {
     System.out.println(s"epsilon        = $epsilon")
     System.out.println(s"checkpointIter = $checkpointIter")
 
-    
     /*
     var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => initID.toInt )
 
@@ -57,9 +60,9 @@ object CDK_vCheckpoint {
         GraphLoader.edgeListFile(sc, path, false, numPartitions)
 
     System.out.println(
-      s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
-        + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
-        + s"eps = $epsilon"
+        s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
+      + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
+      + s"eps = $epsilon"
     )
 
     //The following is needed for undirected (bi-directional edge) graphs
@@ -83,12 +86,14 @@ object CDK_vCheckpoint {
 
     val times : Array[Long] = new Array[Long](100)
 
-//    sc.setCheckpointDir("/Users/xinghao/Documents/tempcheckpoint")
-    sc.setCheckpointDir("/mnt/checkpoints/")
+    sc.setCheckpointDir(checkpointDir)
 
     var prevRankGraph: Graph[Int, Int] = null
     while (maxDeg > 0) {
       times(0) = System.currentTimeMillis()
+      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
+//      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("rm", "-rf", checkpointDir).!
+
       clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
@@ -131,19 +136,19 @@ object CDK_vCheckpoint {
         (vId, oldAttr, newAttr) => newAttr
       }.cache()
 
-      if ((iteration+1) % checkpointIter == 0) {
-        clusterGraph.vertices.checkpoint()
-        clusterGraph.edges.checkpoint()
-        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
-        clusterGraph.checkpoint()
-      }
-
       maxDeg = clusterGraph.aggregateMessages[Int](
         triplet => {
           if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
             triplet.sendToDst(1)
           }
         }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+
+      if ((iteration+1) % checkpointIter == 0) {
+        clusterGraph.vertices.checkpoint()
+        clusterGraph.edges.checkpoint()
+        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+        clusterGraph.checkpoint()
+      }
 
       prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
@@ -155,7 +160,7 @@ object CDK_vCheckpoint {
       times(1) = System.currentTimeMillis()
 
       System.out.println(
-        s"$iteration\t" +
+          s"$iteration\t" +
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
           s"${times(1)-times(0)}\t" +
