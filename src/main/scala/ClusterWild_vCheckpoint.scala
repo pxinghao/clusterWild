@@ -150,7 +150,7 @@ object ClusterWild_vCheckpoint {
           if (checkpointLocal)
             Seq("rm", "-rf", checkpointDir + (iteration - checkpointIter).toString).!
           else
-            Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
+            Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
         }
       }
 
@@ -175,7 +175,7 @@ object ClusterWild_vCheckpoint {
       if (checkpointLocal)
         Seq("rm", "-rf", checkpointDir).!
       else
-        Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
+        Seq("/root//ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
     }
 
     System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
