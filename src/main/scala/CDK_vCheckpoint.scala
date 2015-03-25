@@ -32,8 +32,9 @@ object CDK_vCheckpoint {
     val epsilon         : Double  = argmap.getOrElse("epsilon", "0.5").toDouble
     val checkpointIter  : Int     = argmap.getOrElse("checkpointiter", "20").toInt
     val checkpointDir   : String  = argmap.getOrElse("checkpointdir", "/mnt/checkpoints/")
-    val checkpointClean : Boolean = argmap.getOrElse("checkpointclean", "true").toBoolean
 //    val checkpointDir  : String = argmap.getOrElse("checkpointdir", "/Users/xinghao/Documents/tempcheckpoint")
+    val checkpointClean : Boolean = argmap.getOrElse("checkpointclean", "true").toBoolean
+    val checkpointLocal : Boolean = argmap.getOrElse("checkpointlocal", "false").toBoolean
 
     System.out.println(s"graphType      = $graphType")
     System.out.println(s"rMatNumEdges   = $rMatNumEdges")
@@ -86,13 +87,10 @@ object CDK_vCheckpoint {
 
     val times : Array[Long] = new Array[Long](100)
 
-    sc.setCheckpointDir(checkpointDir)
-
     var prevRankGraph: Graph[Int, Int] = null
     while (maxDeg > 0) {
       times(0) = System.currentTimeMillis()
-      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
-//      if ((iteration+1) % checkpointIter == 0) if (checkpointClean) Seq("rm", "-rf", checkpointDir).!
+      if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
       clusterGraph.cache()
 
@@ -104,8 +102,8 @@ object CDK_vCheckpoint {
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
@@ -134,7 +132,7 @@ object CDK_vCheckpoint {
 
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
-      }.cache()
+      }//.cache()
 
       maxDeg = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -150,12 +148,22 @@ object CDK_vCheckpoint {
         clusterGraph.checkpoint()
       }
 
-      prevRankGraph = clusterGraph
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph = clusterGraph
+//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
+
+      if ((iteration+1) % checkpointIter == 0){
+        if (checkpointClean && iteration-checkpointIter >= 0) {
+          if (checkpointLocal)
+            Seq("rm", "-rf", checkpointDir + (iteration - checkpointIter).toString).!
+          else
+            Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
+        }
+      }
+
 
       times(1) = System.currentTimeMillis()
 
@@ -173,6 +181,12 @@ object CDK_vCheckpoint {
     //Take care of degree 0 nodes
     clusterGraph = AuxiliaryFunctions.setZeroDegreeToCenter(clusterGraph, initID, centerID).cache()
 
+    if (checkpointClean) {
+      if (checkpointLocal)
+        Seq("rm", "-rf", checkpointDir).!
+      else
+        Seq("~/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
+    }
 
     System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
   }
