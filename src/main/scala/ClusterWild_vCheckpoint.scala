@@ -78,13 +78,12 @@ object ClusterWild_vCheckpoint {
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
 //    val epsilon: Double = 0.5
-    val maxDegree: VertexRDD[Int] = clusterGraph.aggregateMessages[Int](
+    var maxDeg: Int = clusterGraph.aggregateMessages[Int](
       triplet => {
         if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
           triplet.sendToDst(1)
         }
-      }, _ + _).cache()
-    var maxDeg: Int = maxDegree.map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
     var numNewCenters: Long = 0
 
     var iteration = 0
@@ -123,7 +122,7 @@ object ClusterWild_vCheckpoint {
 
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
-      }//.cache()
+      }.cache()
 
       maxDeg = clusterGraph.aggregateMessages[Int](
         triplet => {
