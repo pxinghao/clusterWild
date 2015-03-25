@@ -1,5 +1,5 @@
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.graphx._
 import org.apache.spark.graphx.util.GraphGenerators
 import org.apache.spark.rdd.RDD
@@ -13,15 +13,22 @@ import scala.sys.process._
 object CDK_vCheckpoint {
   def main(args: Array[String]) = {
 
-    Logger.getLogger("org").setLevel(Level.WARN)
-    Logger.getLogger("akka").setLevel(Level.WARN)
-
     System.setProperty("spark.worker.timeout",                  "30000")
     System.setProperty("spark.akka.timeout",                    "30000")
     System.setProperty("spark.storage.blockManagerHeartBeatMs", "300000")
     System.setProperty("spark.akka.retry.wait",                 "30000")
     System.setProperty("spark.akka.frameSize",                  "10000")
-    val sc = new SparkContext()
+    val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
+      ("spark.worker.timeout",                  "30000"),
+      ("spark.akka.timeout",                    "30000"),
+      ("spark.storage.blockManagerHeartBeatMs", "300000"),
+      ("spark.akka.retry.wait",                 "30000"),
+      ("spark.akka.frameSize",                  "10000"),
+      ("spark.logConf",                         "true")
+    )))
+
+    Logger.getLogger("org").setLevel(Level.WARN)
+    Logger.getLogger("akka").setLevel(Level.WARN)
 
     val argmap: Map[String, String] = args.map { a =>
       val argPair = a.split("=")

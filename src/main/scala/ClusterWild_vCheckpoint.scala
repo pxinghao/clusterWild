@@ -13,9 +13,6 @@ import scala.sys.process._
 object ClusterWild_vCheckpoint {
   def main(args: Array[String]) = {
 
-    Logger.getLogger("org").setLevel(Level.WARN)
-    Logger.getLogger("akka").setLevel(Level.WARN)
-
     System.setProperty("spark.worker.timeout",                  "30000")
     System.setProperty("spark.akka.timeout",                    "30000")
     System.setProperty("spark.storage.blockManagerHeartBeatMs", "300000")
@@ -29,6 +26,9 @@ object ClusterWild_vCheckpoint {
       ("spark.akka.frameSize",                  "10000"),
       ("spark.logConf",                         "true")
     )))
+
+    Logger.getLogger("org").setLevel(Level.WARN)
+    Logger.getLogger("akka").setLevel(Level.WARN)
 
     val argmap: Map[String, String] = args.map { a =>
       val argPair = a.split("=")
@@ -183,7 +183,7 @@ object ClusterWild_vCheckpoint {
       if (checkpointLocal)
         Seq("rm", "-rf", checkpointDir).!
       else
-        Seq("/root//ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
+        Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
     }
 
     System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
