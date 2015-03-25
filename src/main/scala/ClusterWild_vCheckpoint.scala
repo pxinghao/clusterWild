@@ -16,6 +16,11 @@ object ClusterWild_vCheckpoint {
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
 
+    System.setProperty("spark.worker.timeout",                  "30000")
+    System.setProperty("spark.akka.timeout",                    "30000")
+    System.setProperty("spark.storage.blockManagerHeartBeatMs", "300000")
+    System.setProperty("spark.akka.retry.wait",                 "30000")
+    System.setProperty("spark.akka.frameSize",                  "10000")
     val sc = new SparkContext()
 
     val argmap: Map[String, String] = args.map { a =>
