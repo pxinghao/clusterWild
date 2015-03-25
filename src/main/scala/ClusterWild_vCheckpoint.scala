@@ -96,7 +96,7 @@ object ClusterWild_vCheckpoint {
       clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
-      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
+//      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
 
       numNewCenters = randomSet.count
 
@@ -116,7 +116,7 @@ object ClusterWild_vCheckpoint {
         }, math.min(_, _)
       ).cache()
 
-      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
+//      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
