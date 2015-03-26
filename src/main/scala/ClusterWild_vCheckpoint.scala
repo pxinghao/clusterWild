@@ -112,8 +112,8 @@ object ClusterWild_vCheckpoint {
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-//      clusterGraph.vertices.foreachPartition(_ => {})
-//      clusterGraph.triplets.foreachPartition(_ => {})
+      clusterGraph.vertices.foreachPartition(_ => {})
+      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
@@ -131,6 +131,13 @@ object ClusterWild_vCheckpoint {
         (vId, oldAttr, newAttr) => newAttr
       }.cache()
 
+      if ((iteration+1) % checkpointIter == 0) {
+        clusterGraph.vertices.checkpoint()
+        clusterGraph.edges.checkpoint()
+        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+        clusterGraph.checkpoint()
+      }
+
       maxDeg = clusterGraph.aggregateMessages[Int](
         triplet => {
           if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
@@ -138,23 +145,12 @@ object ClusterWild_vCheckpoint {
           }
         }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
 
-      if ((iteration+1) % checkpointIter == 0) {
-        prevRankGraph = clusterGraph
-        clusterGraph.vertices.checkpoint()
-        clusterGraph.edges.checkpoint()
-        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
-        clusterGraph.checkpoint()
-        clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-        prevRankGraph.vertices.unpersist(false)
-        prevRankGraph.edges.unpersist(false)
-      }
-
-//      prevRankGraph = clusterGraph
-//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-//      clusterGraph.vertices.foreachPartition(_ => {})
-//      clusterGraph.triplets.foreachPartition(_ => {})
-//      prevRankGraph.vertices.unpersist(false)
-//      prevRankGraph.edges.unpersist(false)
+      prevRankGraph = clusterGraph
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+      clusterGraph.vertices.foreachPartition(_ => {})
+      clusterGraph.triplets.foreachPartition(_ => {})
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
