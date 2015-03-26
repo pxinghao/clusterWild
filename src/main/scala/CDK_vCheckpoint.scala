@@ -193,6 +193,8 @@ object CDK_vCheckpoint {
     //Take care of degree 0 nodes
     clusterGraph = AuxiliaryFunctions.setZeroDegreeToCenter(clusterGraph, initID, centerID).cache()
 
+    System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
+
     if (checkpointClean) {
       if (checkpointLocal)
         Seq("rm", "-rf", checkpointDir).!
@@ -200,6 +202,7 @@ object CDK_vCheckpoint {
         Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
     }
 
-    System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
+    System.out.println()
+
   }
 }
