@@ -188,7 +188,7 @@ object ClusterWild_vCheckpoint {
         Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
     }
 
-    System.out.println()
+    System.out.print()
 
   }
 }
