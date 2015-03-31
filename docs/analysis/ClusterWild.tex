@@ -456,9 +456,8 @@ Hence, we have
 \quad\le\quad 2\cdot \epsilon^2 \cdot n.
 \end{align*}
 
-Now we bound the first term $\mathbb{E}\{\mathcal{T}_\text{old}\}$.
-
-\xh{At this point we put in the analysis that it suffices to bound $\mathcal{C}_{u,v} := \sum_{t:\{u,v\}\subset t \in \mathcal{T}_\text{old}} \mathcal{P}_t$ to bound $\sum_{t \in \mathcal{T}_{\text{old}}} \mathcal{P}_t$, by using the linear program relaxation and its dual.}
+To bound $\mathbb{E}\{\mathcal{T}_\text{old}\}$,
+by Lemma \ref{lem:alphaapprox} it suffices to bound the expectation of $\mathcal{C}_{u,v} := \sum_{t:\{u,v\}\subset t \in \mathcal{T}_\text{old}} {\bf 1}_{\mathcal{P}_t}$.
 
 Consider any arbitrary $u$ and $v$ which belong to at least one bad triangle.
 Let $\mathcal{S} = \bigcup_{\{u,v\}\subset t \in \mathcal{T}_\text{old}} t$ be the union of the sets of nodes of the bad triangles that contain both $u$ and $v$.
@@ -552,54 +551,79 @@ a 3 approximation for CC on complete unweighted graphs.
 This research is supported in part by NSF CISE Expeditions Award CCF-1139158, LBNL Award 7076018, and DARPA XData Award FA8750-12-2-0331, and  gifts from Amazon Web Services, Google, SAP,  The Thomas and Stacey Siebel Foundation, Adobe, Apple, Inc., Bosch, C3Energy, Cisco, Cloudera, EMC, Ericsson, Facebook, GameOnTalis, Guavus, HP, Huawei, Intel, Microsoft, NetApp, Pivotal, Splunk, Virdata, VMware, and Yahoo!.
 \appendix
 
-%\section{Proof of Greedy}
-%
-%\begin{theo}[\cite{ailon2008aggregating}]
-%KwikCluster achieves a $3$-approximation (in expectation).
-%\end{theo}
-%\begin{proof}
-%Let us define the event 
-%\begin{align*}
-%\mathcal{P}_t = \{&\text{$t=(i,j,k)$ is a bad triangle}, \\
-%&\text{all $i,j,k$ are part of the current graph}, \\
-%&\text{at least one of $i,j,k$ is a pivot}\}.
-%\end{align*}
-%and let $p_t$ denote its probability.
-%Then, the expected cost of KwikCluster is
-%\begin{align*}
-%\mathbb{E}\{cost_{\text{KC}}\} = \mathbb{E}\left\{\sum_{t \in \mathcal{T}_b} \mathbf{1}_{\mathcal{P}_t} \right\} = \sum_{t \in \mathcal{T}_b} p_t.
-%\end{align*}
-%Observe that we can appopriately bound the optimal number of dissagrements.
-%Let $\mathcal{B}_*$ be one (of the possibly many) sets of edges that attribute a $+1$ int he cost of an optimal algorithm.
-%Moreover, let a $\{\beta_t\}_{t=1}^{|\mathcal{T}_b|}$ be a set weights on bad triangles that satisfy the following packing inequalities
-%\begin{align*}
-%\forall e,\; \sum_{t\ni e,\; t \in \Tb} \beta_t \le 1.
-%\end{align*}
-%Then,
-%\begin{align*}
-%\OPT &= |\mathcal{B}_*| = \sum_{e \in \mathcal{B}_*} 1 \ge \sum_{e \in \mathcal{B}_*} \sum_{t\in \mathcal{T}_b} \beta_t\\
-%& \ge \sum_{t\in \mathcal{T}_b} \underbrace{|\mathcal{B}_*\cap t|}_{\ge1} \beta_t \ge \sum_{t\in \mathcal{T}_b} \beta_t
-%\end{align*}
-%Hence, if there exist an algorithm with probabilities on bad triangles that satisfy $\gamma_t = p_t/\alpha$, 
-%\begin{align*}
-%\forall e,\; \sum_{t\ni e,\; t \in \Tb} \gamma_t \le 1.
-%\end{align*}
-%then that algorithm obtains an $\alpha$-approximation.
-%Now let us define the even that a specific edge $e = (i,j)$ contributes to the cost of the greedy $\mathcal{C}_e$.
-%Then, 
-%$$\Pr\left\{\bigcup_{t\in \Tb} \left\{\mathcal{C}_e \wedge \mathcal{P}_t\right\}\right\}=\sum_{t\in \Tb}\Pr \left\{\mathcal{C}_e \wedge \mathcal{P}_t\right\}\le 1$$
-%since an edge that contributed to the cost, can only be attributed to a single bad triangle.
-%Moreover, we have 
-%$$\Pr \left\{\mathcal{C}_e \wedge \mathcal{P}_t\right\}
-% = \Pr \left\{\mathcal{C}_e \left| \mathcal{P}_t\right. \right\} \Pr\{\mathcal{P}_t\}
-%=\Pr \left\{\mathcal{C}_e \left| \mathcal{P}_t\right. \right\}\cdot p_t 
-% $$
-% and $\Pr \left\{\mathcal{C}_e \left| \mathcal{P}_t\right. \right\}=\frac{1}{3}$, since all edges of a bad triangle adjacent to a pivot are equally likely to contribute to the cost of KwikCluster.
-% Hence, for all edges $e$ we have
-% $$\sum_{t\in \Tb}\frac{1}{3}p_t\le 1$$
-% which implies that KwikCluster is a $3$-approximation in expectation.
-%\end{proof}
-%
+\section{Proof of Greedy}
+
+\begin{lem}
+\label{lem:alphaapprox}
+For any correlation clustering algorithm $A$, let $p_t = \mathbb{E}_A({\bf 1}_{\mathcal{P}_t})$ be the probability that the bad triangle $t$ is selected by $A$.
+If $p_t$ satisfies
+\begin{align*}
+\forall t \in \mathcal{T}_b, \quad p_t &\leq \alpha\gamma_t,\\
+\forall e,                            \quad \sum_{t: e \subset t \in \mathcal{T}_b} \gamma_t &\leq 1,
+\end{align*}
+then $A$ obtains an $\alpha$-OPT approximation in expectation.
+\end{lem}
+\begin{proof}
+Let $\mathcal{B}_*$ be one (of the possibly many) sets of edges that attribute a $+1$ in the cost of an optimal algorithm.
+\begin{align*}
+\mathbb{E}(cost_A)
+&=    \mathbb{E}\left[\sum_{t\in\mathcal{T}_b {\bf 1}_{\mathcal{P}_t}}\right]\\
+&=    \sum_{t \in \mathcal{T}_b} p_t\\
+&\leq \alpha\sum_{t \in \mathcal{T}_b} \gamma_t\\
+&\leq \alpha\sum_{t\in \mathcal{T}_b} \underbrace{|\mathcal{B}_*\cap t|}_{\ge1} \gamma_t\\
+&\leq \alpha\sum_{e \in \mathcal{B}_*} \sum_{t\in \mathcal{T}_b} \gamma_t \\
+&\leq \alpha\sum_{e \in \mathcal{B}_*} 1 \\
+&=    \alpha|\mathcal{B}_*|\\
+&=    \alpha \cdot \text{OPT}.
+\end{align*}
+\end{proof}
+
+\begin{theo}[\cite{ailon2008aggregating}]
+KwikCluster achieves a $3$-approximation (in expectation).
+\end{theo}
+\begin{proof}
+Let us define the event 
+\begin{align*}
+\mathcal{P}_t = \{&\text{$t=(i,j,k)$ is a bad triangle}, \\
+&\text{all $i,j,k$ are part of the current graph}, \\
+&\text{at least one of $i,j,k$ is a pivot}\}.
+\end{align*}
+and let $p_t$ denote its probability.
+Then, the expected cost of KwikCluster is
+\begin{align*}
+\mathbb{E}\{cost_{\text{KC}}\} = \mathbb{E}\left\{\sum_{t \in \mathcal{T}_b} \mathbf{1}_{\mathcal{P}_t} \right\} = \sum_{t \in \mathcal{T}_b} p_t.
+\end{align*}
+Observe that we can appopriately bound the optimal number of dissagrements.
+Let $\mathcal{B}_*$ be one (of the possibly many) sets of edges that attribute a $+1$ int he cost of an optimal algorithm.
+Moreover, let a $\{\beta_t\}_{t=1}^{|\mathcal{T}_b|}$ be a set weights on bad triangles that satisfy the following packing inequalities
+\begin{align*}
+\forall e,\; \sum_{t\ni e,\; t \in \Tb} \beta_t \le 1.
+\end{align*}
+Then,
+\begin{align*}
+\OPT &= |\mathcal{B}_*| = \sum_{e \in \mathcal{B}_*} 1 \ge \sum_{e \in \mathcal{B}_*} \sum_{t\in \mathcal{T}_b} \beta_t\\
+& \ge \sum_{t\in \mathcal{T}_b} \underbrace{|\mathcal{B}_*\cap t|}_{\ge1} \beta_t \ge \sum_{t\in \mathcal{T}_b} \beta_t
+\end{align*}
+Hence, if there exist an algorithm with probabilities on bad triangles that satisfy $\gamma_t = p_t/\alpha$, 
+\begin{align*}
+\forall e,\; \sum_{t\ni e,\; t \in \Tb} \gamma_t \le 1.
+\end{align*}
+then that algorithm obtains an $\alpha$-approximation.
+Now let us define the even that a specific edge $e = (i,j)$ contributes to the cost of the greedy $\mathcal{C}_e$.
+Then, 
+$$\Pr\left\{\bigcup_{t\in \Tb} \left\{\mathcal{C}_e \wedge \mathcal{P}_t\right\}\right\}=\sum_{t\in \Tb}\Pr \left\{\mathcal{C}_e \wedge \mathcal{P}_t\right\}\le 1$$
+since an edge that contributed to the cost, can only be attributed to a single bad triangle.
+Moreover, we have 
+$$\Pr \left\{\mathcal{C}_e \wedge \mathcal{P}_t\right\}
+= \Pr \left\{\mathcal{C}_e \left| \mathcal{P}_t\right. \right\} \Pr\{\mathcal{P}_t\}
+=\Pr \left\{\mathcal{C}_e \left| \mathcal{P}_t\right. \right\}\cdot p_t 
+$$
+and $\Pr \left\{\mathcal{C}_e \left| \mathcal{P}_t\right. \right\}=\frac{1}{3}$, since all edges of a bad triangle adjacent to a pivot are equally likely to contribute to the cost of KwikCluster.
+Hence, for all edges $e$ we have
+$$\sum_{t\in \Tb}\frac{1}{3}p_t\le 1$$
+which implies that KwikCluster is a $3$-approximation in expectation.
+\end{proof}
+
 %\subsubsection{Worst-case instance}
 
 
