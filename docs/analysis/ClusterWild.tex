@@ -383,7 +383,7 @@ n\cdot e^{-t\cdot \epsilon /2} &< \delta / \log\Delta
 %\Leftrightarrow t &> \frac{\ln(1/\delta)+\log n}{\ln \left(1- \frac{\epsilon}{2}\right)}\\
 \Leftrightarrow t > \frac{2}{\epsilon}\cdot\ln(n \log \Delta / \delta)
 \end{align*}
-Hence, with probability at least $1-\delta / \log\Delta$, after $\frac{2}{\epsilon}\cdot\ln(n/\delta)$ rounds either all nodes of degree greater than $\Delta/2$ are clustered, or the maximum degree is decreased by half.
+Hence, with probability at least $1-\delta / \log\Delta$, after $\frac{2}{\epsilon}\cdot\ln(n\log\Delta/\delta)$ rounds either all nodes of degree greater than $\Delta/2$ are clustered, or the maximum degree is decreased by half.
 Applying this argument $\log\Delta$ times yields the result, as the maximum degree of the remaining graph becomes $0$.
 \end{proof}
 
@@ -440,23 +440,19 @@ where
 Observe that the above even over counts triangles, as it can charge the same bad triangle to more than one pivots.
 This means that the event of an old triangles picked by a single pivot, is upper bounded by the event that it is picked by multiple pivots.
 Hence, we have
-\begin{align}
-\mathbb{E}\left\{T_{\text{new}}\right\}& \le {P\choose 2} \cdot \frac{E}{{n \choose 2}}\cdot 2\cdot \Delta \\
-&\le 2\cdot P^2\cdot \frac{E}{n^2}\cdot (2\cdot \Delta)
-\end{align}
-Let $P= \epsilon \frac{n}{\Delta}$.
-Then,
-$$\mathbb{E}\left\{T_{\text{new}}\right\} \le \epsilon^2 \cdot \frac{n^2}{\Delta^2}\cdot  \frac{E}{n^2}\cdot 2\cdot \Delta
-\le 2\cdot \epsilon^2\cdot \frac{E}{\Delta}
-\le 2\cdot \epsilon^2 \cdot n.$$
+$$\mathbb{E}\left\{T_{\text{new}}\right\}
+\quad=\quad   \sum_{e \in E} \left(\frac{\epsilon}{\Delta_i}\right)^2 \cdot 2 \cdot \Delta_i
+\quad\le\quad 2\cdot \epsilon^2\cdot \frac{E}{\Delta_i}
+\quad\le\quad 2\cdot \epsilon^2 \cdot n.$$
 
 Now we would like to bound the following probability:
 \begin{align*}
-&\Pr\left\{
+\Pr\left\{
 \left.v \cap \mathcal{A} \neq\emptyset\right|  \mathcal{S}\cap\mathcal{A} \neq\emptyset
-\right\} \\
+\right\} 
 &= \frac{\Pr\left\{v\in\mathcal{A}\right\}\cdot \Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \left|v\in\mathcal{A} \right.\right\}}{\Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \right\}}\\
-&= \frac{\Pr\left\{v\in\mathcal{A}\right\}}{\Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \right\}}=\frac{\Pr\left\{v\in\mathcal{A}\right\}}{1-\Pr\left\{\mathcal{S}\cap\mathcal{A} =\emptyset\right\}},
+&= \frac{\Pr\left\{v\in\mathcal{A}\right\}}{\Pr\left\{\mathcal{S}\cap\mathcal{A} \neq\emptyset \right\}}
+\quad=\quad\frac{\Pr\left\{v\in\mathcal{A}\right\}}{1-\Pr\left\{\mathcal{S}\cap\mathcal{A} =\emptyset\right\}},
 %&\le \frac{\sfrac{\epsilon}{\Delta}}{1-(1-\sfrac{|S|}{n})^{\sfrac{\epsilon\cdot n}{\Delta}}}
 \end{align*}
 Observe that 
@@ -464,17 +460,11 @@ $\Pr\left\{v\in\mathcal{A}\right\} = \frac{\epsilon}{\Delta}$, hence we need to 
 We will follow the same manner as the previous section.
 The probability, per round, that no neighbors nodes in $\mathcal{S}$ become activated is equal to
 \begin{align*}
-\frac{{n-|\mathcal{S}|\choose P}}{{n\choose P}}
-%& = \frac{\frac{(n-d_{i+j})!}{P!(n-d_{i+j}-P)!} }{\frac{n!}{P!(n-P)!}}\\
-% = \frac{(n-d_{i+j})!\cdot (n-P)!}{n!\cdot (n-d_{i+j}-P)! }\\
-%&= \frac{(n-P-d_{i+j})!}{n!}\cdot  \frac{ (n-P)!}{ (n-P-d_{i+j})! }\\
-%&= \frac{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t-P)}{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t)}\\
-%&= \prod_{t=1}^{d_{i+j}} \frac{n-d_{i+1}+t-P}{n-d_{i+1}+t}\\
-&= \prod_{t=1}^{|\mathcal{S}|}\left(1- \frac{P}{n-|\mathcal{S}|+t}\right)\le \left(1- \frac{P}{n}\right)^{|\mathcal{S}|}\\
+\left(1- \frac{\epsilon}{\Delta_i}\right)^{|\mathcal{S}|}
 &
 %\le \left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
-= \left[\left(1- \frac{P}{n}\right)^{n/P}\right]^{|\mathcal{S}|n/P}
-\le \left(\frac{1}{e}\right)^{|\mathcal{S}|n/P}.
+= \left[\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/\epsilon}\right]^{|\mathcal{S}|\epsilon/\Delta_i}
+\le \left(\frac{1}{e}\right)^{|\mathcal{S}|\epsilon/\Delta_i}.
 %\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
 \end{align*}
 Hence, the probability can be upper bounded as
@@ -482,8 +472,7 @@ Hence, the probability can be upper bounded as
 |\mathcal{S}|\Pr\left\{
 \left.v \cap \mathcal{A} \neq\emptyset\right|  \mathcal{S}\cap\mathcal{A} \neq\emptyset
 \right\} 
-&\le \frac{\epsilon\cdot |\mathcal{S}|/\Delta}{1-e^{-|\mathcal{S}|n/(\epsilon n/\Delta)}}\\
-&= \frac{\epsilon\cdot \sfrac{|\mathcal{S}|}{\Delta}}{1-e^{-\epsilon\cdot \sfrac{|\mathcal{S}|}{\Delta}}}
+&\le \frac{\epsilon\cdot \sfrac{|\mathcal{S}|}{\Delta}}{1-e^{-\epsilon\cdot \sfrac{|\mathcal{S}|}{\Delta}}}
 \end{align*}
 We know that $|\mathcal{S}|\le 2\cdot\Delta+2$ and also $\epsilon\le 1$.
 Then, 
