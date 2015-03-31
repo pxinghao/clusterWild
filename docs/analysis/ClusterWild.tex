@@ -287,7 +287,7 @@ We conclude that {\it{C4}}  is suitable for large-graph cases, where the number 
 \STATE $\pi=$ a random permutation of $\{1,\ldots, n\}$
 \WHILE{$|V|>0 $}
 \STATE Calculate $\Delta$, the maximum degree in $G$.
-\STATE Activate $P=\frac{\epsilon\cdot n}{\Delta}$ vertices at random.
+\STATE Activate each vertex with probability $\frac{\epsilon}{\Delta}$.
 %each vertex with probability $p = \frac{\epsilon}{\Delta}$
 \STATE $\mathcal{A}$ = set of active vertices. 
 %\FOR{$v \in \mathcal{A}$}
@@ -339,17 +339,12 @@ We wish to upper bound the probablity
 }Observe that the above event happens either if no neighbors of $v$ become activated by round $i+t$, or if $v$ itself does not become activated.
 Hence, $q_t$ can be upper bounded by the probability that no neighbors of $v$ become activated by round $i+t$.
 
-In the following, let $d_{i+j}$ denote the degree of vertex $v$ at roudn $i+j$;
-for simplicity we drop the round indices on $n$ and $P$.
-The probability, per round, that no neighbors of $v$ become activated is equal to\footnote{this follows from a simple calculation on the pdf of the hypergeometric distribution.}
+In the following, let $d_{i+j}$ denote the degree of vertex $v$ at round $i+j$.
+The probability, per round, that no neighbors of $v$ become activated is equal to
 \begin{align*}
-&\frac{{n-d_{i+j}\choose P}}{{n\choose P}}
-%& = \frac{\frac{(n-d_{i+j})!}{P!(n-d_{i+j}-P)!} }{\frac{n!}{P!(n-P)!}}\\
-% = \frac{(n-d_{i+j})!\cdot (n-P)!}{n!\cdot (n-d_{i+j}-P)! }\\
-= \frac{ (n-P)!}{ (n-P-d_{i+j})! }\cdot \frac{(n-d_{i+j})!}{n!}\\
-&= \frac{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t-P)}{\prod_{t=1}^{d_{i+j}}(n-d_{i+1}+t)}= \prod_{t=1}^{d_{i+j}} \frac{n-d_{i+1}+t-P}{n-d_{i+1}+t}\\
-&= \prod_{t=1}^{d_{i+j}}\left(1- \frac{P}{n-d_{i+1}+t}\right)\le \left(1- \frac{P}{n}\right)^{d_{i+j}}\\
-&\le \left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}= \left[\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/\epsilon}\right]^{\epsilon/2}
+\left(1- \frac{\epsilon}{\Delta_i}\right)^{d_{i+j}}
+\le \left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
+= \left[\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/\epsilon}\right]^{\epsilon/2}
 \le e^{-\epsilon/2}.
 %\left(1- \frac{\epsilon}{\Delta_i}\right)^{\Delta_i/2}
 \end{align*}
@@ -375,20 +370,21 @@ Using the above lemma we get our first theorem.
 
 \begin{theo}
 ClusterWild! completes after at most 
-$$\frac{2}{\epsilon} \cdot \ln\left(\frac{n}{\delta}\right) \cdot \log \Delta$$ 
+$$\frac{2}{\epsilon} \cdot \ln\left(\frac{n \log \Delta}{\delta}\right) \cdot \log \Delta
+\le \frac{4}{\epsilon} \cdot \ln\left(\frac{n}{\delta}\right) \cdot \log \Delta$$ 
 rounds with probability at least $1-\delta$.
 \end{theo}
 \begin{proof}
 Due to the previous lemma, we have that for any round $i$, the probability that any vertex has degree more than $\Delta_i/2$ after $t$ rounds is at most $n\cdot e^{-t\cdot \epsilon /2}$, due to a simple union bound.
-If we want that that probability to be smaller than $\delta$, then
+If we want that that probability to be smaller than $\delta / \log\Delta$, then
 \begin{align*}
-n\cdot e^{-t\cdot \epsilon /2} &< \delta
-\Leftrightarrow \ln n-t\cdot \epsilon /2 < \ln(\delta)
+n\cdot e^{-t\cdot \epsilon /2} &< \delta / \log\Delta
+\Leftrightarrow \ln (n \log \Delta) -t\cdot \epsilon /2 < \ln(\delta)
 %\Leftrightarrow t &> \frac{\ln(1/\delta)+\log n}{\ln \left(1- \frac{\epsilon}{2}\right)}\\
-\Leftrightarrow t > \frac{2}{\epsilon}\cdot\ln(n/\delta)
+\Leftrightarrow t > \frac{2}{\epsilon}\cdot\ln(n \log \Delta / \delta)
 \end{align*}
-Hence, with probability $1-\delta$, after $\frac{2}{\epsilon}\cdot\ln(n/\delta)$ rounds either all nodes of degree greater than $\Delta/2$ are clustered, or the maximum degree is decreased by half.
-Applying this argument $\log\Delta$ times yields the result, as the maximum degree of the remaining graph becomes $1$.
+Hence, with probability at least $1-\delta / \log\Delta$, after $\frac{2}{\epsilon}\cdot\ln(n/\delta)$ rounds either all nodes of degree greater than $\Delta/2$ are clustered, or the maximum degree is decreased by half.
+Applying this argument $\log\Delta$ times yields the result, as the maximum degree of the remaining graph becomes $0$.
 \end{proof}
 
 
