@@ -74,7 +74,7 @@ object CDK_vCheckpoint {
 
     val numVertices = graph.vertices.count
     val logN = math.floor(math.log(numVertices.toDouble))
-    val maxDegRecomputeRounds = math.floor(2.0 / epsilon * logN.toDouble)
+    val maxDegRecomputeRounds = logN//math.floor(2.0 / epsilon * logN.toDouble)
 
     System.out.println(
         s"Graph has $numVertices vertices (${graph.vertices.partitions.length} partitions),"
