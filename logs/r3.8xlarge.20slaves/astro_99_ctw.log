@@ -1,0 +1,16 @@
+graphType      = file
+rMatNumEdges   = 100000000
+path           = /astro.edges
+numPartitions  = 2
+epsilon        = 0.5
+checkpointIter = 1
+Graph has 18772 vertices (2 partitions),396160 edges (2 partitions),eps = 0.5
+0	992	9	1025	
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/0
+1	984	12	3572	
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/1
+2	970	4	4935	
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/2
+3	960	10	4470	
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/3
+4	946	18	4208	
