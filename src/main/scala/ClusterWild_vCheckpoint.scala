@@ -72,8 +72,12 @@ object ClusterWild_vCheckpoint {
       else
         GraphLoader.edgeListFile(sc, path, false, numPartitions)
 
+    val numVertices = graph.vertices.count
+    val logN = math.floor(math.log(numVertices.toDouble))
+    val maxDegRecomputeRounds = logN//math.floor(2.0 / epsilon * logN.toDouble)
+
     System.out.println(
-        s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
+        s"Graph has $numVertices vertices (${graph.vertices.partitions.length} partitions),"
       + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
       + s"eps = $epsilon"
     )
@@ -139,13 +143,15 @@ object ClusterWild_vCheckpoint {
         clusterGraph.checkpoint()
       }
 
-      degrees = clusterGraph.aggregateMessages[Int](
-        triplet => {
-          if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
-            triplet.sendToDst(1)
-          }
-        }, _ + _).map(x => x._2)
-      maxDeg = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
+      if ((iteration % maxDegRecomputeRounds) == 0) {
+        degrees = clusterGraph.aggregateMessages[Int](
+          triplet => {
+            if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
+              triplet.sendToDst(1)
+            }
+          }, _ + _).map(x => x._2)
+        maxDeg = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
+      }
 
       prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
@@ -181,7 +187,7 @@ object ClusterWild_vCheckpoint {
     //Take care of degree 0 nodes
     clusterGraph = AuxiliaryFunctions.setZeroDegreeToCenter(clusterGraph, initID, centerID).cache()
 
-    System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
+    System.out.println(s"qq\t${AuxiliaryFunctions.computeObjective(clusterGraph)}")
 
     if (checkpointClean) {
       if (checkpointLocal)
@@ -190,7 +196,7 @@ object ClusterWild_vCheckpoint {
         Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
     }
 
-    System.out.print()
+//    System.out.print()
 
   }
 }
