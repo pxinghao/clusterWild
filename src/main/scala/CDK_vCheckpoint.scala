@@ -86,12 +86,13 @@ object CDK_vCheckpoint {
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
 //    val epsilon: Double = 0.5
-    var maxDeg: Int = clusterGraph.aggregateMessages[Int](
+    var degrees = clusterGraph.aggregateMessages[Int](
       triplet => {
         if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
           triplet.sendToDst(1)
         }
-      }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      }, _ + _).map(x => x._2)
+    var maxDeg: Int = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
     var numNewCenters: Long = 0
 
     var iteration = 0
@@ -152,12 +153,13 @@ object CDK_vCheckpoint {
         clusterGraph.checkpoint()
       }
 
-      maxDeg = clusterGraph.aggregateMessages[Int](
+      degrees = clusterGraph.aggregateMessages[Int](
         triplet => {
           if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
             triplet.sendToDst(1)
           }
-        }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+        }, _ + _).map(x => x._2)
+      maxDeg = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
 
       prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
