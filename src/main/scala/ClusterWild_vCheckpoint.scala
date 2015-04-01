@@ -101,12 +101,12 @@ object ClusterWild_vCheckpoint {
     var prevRankGraph: Graph[Int, Int] = null
     while (maxDeg > 0) {
       times(0) = System.currentTimeMillis()
-      if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
+      if (iteration % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
       clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
-      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
+      if (iteration % checkpointIter == 0) randomSet.checkpoint()
 
       numNewCenters = randomSet.count
 
@@ -126,13 +126,13 @@ object ClusterWild_vCheckpoint {
         }, math.min(_, _)
       ).cache()
 
-      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
+      if (iteration % checkpointIter == 0) clusterUpdates.checkpoint()
 
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
       }.cache()
 
-      if ((iteration+1) % checkpointIter == 0) {
+      if (iteration % checkpointIter == 0) {
         clusterGraph.vertices.checkpoint()
         clusterGraph.edges.checkpoint()
         clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
@@ -154,7 +154,7 @@ object ClusterWild_vCheckpoint {
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
-      if ((iteration+1) % checkpointIter == 0){
+      if (iteration % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)
             Seq("rm", "-rf", checkpointDir + (iteration - checkpointIter).toString).!
