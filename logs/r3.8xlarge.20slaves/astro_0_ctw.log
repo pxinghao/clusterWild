@@ -1,0 +1,251 @@
+Spark assembly has been built with Hive, including Datanucleus jars on classpath
+15/03/26 02:59:39 INFO spark.SparkContext: Spark configuration:
+spark.akka.frameSize=10000
+spark.akka.retry.wait=30000
+spark.akka.timeout=30000
+spark.app.name=ClusterWild_vCheckpoint
+spark.driver.memory=100g
+spark.executor.extraClassPath=/root/ephemeral-hdfs/conf
+spark.executor.extraLibraryPath=/root/ephemeral-hdfs/lib/native/
+spark.executor.memory=100g
+spark.jars=file:/root/clusterWild/target/scala-2.10/clusterwild_2.10-1.0.jar
+spark.logConf=true
+spark.master=spark://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:7077
+spark.storage.blockManagerHeartBeatMs=300000
+spark.worker.timeout=30000
+15/03/26 02:59:39 INFO spark.SecurityManager: Changing view acls to: root
+15/03/26 02:59:39 INFO spark.SecurityManager: Changing modify acls to: root
+15/03/26 02:59:39 INFO spark.SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users with view permissions: Set(root); users with modify permissions: Set(root)
+15/03/26 02:59:39 INFO slf4j.Slf4jLogger: Slf4jLogger started
+15/03/26 02:59:39 INFO Remoting: Starting remoting
+15/03/26 02:59:40 INFO Remoting: Remoting started; listening on addresses :[akka.tcp://sparkDriver@ip-10-47-4-131.us-west-2.compute.internal:40983]
+15/03/26 02:59:40 INFO util.Utils: Successfully started service 'sparkDriver' on port 40983.
+15/03/26 02:59:40 INFO spark.SparkEnv: Registering MapOutputTracker
+15/03/26 02:59:40 INFO spark.SparkEnv: Registering BlockManagerMaster
+15/03/26 02:59:40 INFO storage.DiskBlockManager: Created local directory at /mnt/spark/spark-2a16ad2d-d463-4e23-9b17-3f754a1fecfa/spark-36bb008c-7d58-4a93-83fb-618a36c6ab01
+15/03/26 02:59:40 INFO storage.DiskBlockManager: Created local directory at /mnt2/spark/spark-47782381-6f60-4fa7-b99a-eb41fd528d70/spark-0fb41ae4-4654-4cde-aafa-b5069d3ddbef
+15/03/26 02:59:40 INFO storage.MemoryStore: MemoryStore started with capacity 51.8 GB
+15/03/26 02:59:40 INFO spark.HttpFileServer: HTTP File server directory is /mnt/spark/spark-5cc84c6f-512a-4008-a41e-9c4b60083c8a/spark-cdc55b65-4c32-41b9-9d31-de286b1cb40f
+15/03/26 02:59:40 INFO spark.HttpServer: Starting HTTP Server
+15/03/26 02:59:40 INFO server.Server: jetty-8.y.z-SNAPSHOT
+15/03/26 02:59:40 INFO server.AbstractConnector: Started SocketConnector@0.0.0.0:33967
+15/03/26 02:59:40 INFO util.Utils: Successfully started service 'HTTP file server' on port 33967.
+15/03/26 02:59:40 INFO server.Server: jetty-8.y.z-SNAPSHOT
+15/03/26 02:59:40 INFO server.AbstractConnector: Started SelectChannelConnector@0.0.0.0:4040
+15/03/26 02:59:40 INFO util.Utils: Successfully started service 'SparkUI' on port 4040.
+15/03/26 02:59:40 INFO ui.SparkUI: Started SparkUI at http://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:4040
+15/03/26 02:59:40 INFO spark.SparkContext: Added JAR file:/root/clusterWild/target/scala-2.10/clusterwild_2.10-1.0.jar at http://10.47.4.131:33967/jars/clusterwild_2.10-1.0.jar with timestamp 1427338780525
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Connecting to master spark://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:7077...
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Connected to Spark cluster with app ID app-20150326025940-0044
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/0 on worker-20150324230444-ip-10-37-133-80.us-west-2.compute.internal-60461 (ip-10-37-133-80.us-west-2.compute.internal:60461) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/0 on hostPort ip-10-37-133-80.us-west-2.compute.internal:60461 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/1 on worker-20150324230444-ip-10-47-2-67.us-west-2.compute.internal-41396 (ip-10-47-2-67.us-west-2.compute.internal:41396) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/1 on hostPort ip-10-47-2-67.us-west-2.compute.internal:41396 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/2 on worker-20150324230443-ip-10-33-130-195.us-west-2.compute.internal-44744 (ip-10-33-130-195.us-west-2.compute.internal:44744) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/2 on hostPort ip-10-33-130-195.us-west-2.compute.internal:44744 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/3 on worker-20150324230444-ip-10-40-128-78.us-west-2.compute.internal-49226 (ip-10-40-128-78.us-west-2.compute.internal:49226) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/3 on hostPort ip-10-40-128-78.us-west-2.compute.internal:49226 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/4 on worker-20150324230444-ip-10-43-130-211.us-west-2.compute.internal-32961 (ip-10-43-130-211.us-west-2.compute.internal:32961) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/4 on hostPort ip-10-43-130-211.us-west-2.compute.internal:32961 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/5 on worker-20150324230443-ip-10-47-2-168.us-west-2.compute.internal-39495 (ip-10-47-2-168.us-west-2.compute.internal:39495) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/5 on hostPort ip-10-47-2-168.us-west-2.compute.internal:39495 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/6 on worker-20150324230444-ip-10-47-6-87.us-west-2.compute.internal-54528 (ip-10-47-6-87.us-west-2.compute.internal:54528) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/6 on hostPort ip-10-47-6-87.us-west-2.compute.internal:54528 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/7 on worker-20150324230444-ip-10-34-9-130.us-west-2.compute.internal-39448 (ip-10-34-9-130.us-west-2.compute.internal:39448) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/7 on hostPort ip-10-34-9-130.us-west-2.compute.internal:39448 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/8 on worker-20150324230444-ip-10-37-140-220.us-west-2.compute.internal-53307 (ip-10-37-140-220.us-west-2.compute.internal:53307) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/8 on hostPort ip-10-37-140-220.us-west-2.compute.internal:53307 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/9 on worker-20150324230444-ip-10-43-137-38.us-west-2.compute.internal-56970 (ip-10-43-137-38.us-west-2.compute.internal:56970) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/9 on hostPort ip-10-43-137-38.us-west-2.compute.internal:56970 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/10 on worker-20150324230444-ip-10-47-2-196.us-west-2.compute.internal-34095 (ip-10-47-2-196.us-west-2.compute.internal:34095) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/10 on hostPort ip-10-47-2-196.us-west-2.compute.internal:34095 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/11 on worker-20150324230444-ip-10-47-4-72.us-west-2.compute.internal-44655 (ip-10-47-4-72.us-west-2.compute.internal:44655) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/11 on hostPort ip-10-47-4-72.us-west-2.compute.internal:44655 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/12 on worker-20150324230444-ip-10-34-136-156.us-west-2.compute.internal-49197 (ip-10-34-136-156.us-west-2.compute.internal:49197) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/12 on hostPort ip-10-34-136-156.us-west-2.compute.internal:49197 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/13 on worker-20150324230444-ip-10-43-128-4.us-west-2.compute.internal-60182 (ip-10-43-128-4.us-west-2.compute.internal:60182) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/13 on hostPort ip-10-43-128-4.us-west-2.compute.internal:60182 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/14 on worker-20150324230444-ip-10-47-6-46.us-west-2.compute.internal-51169 (ip-10-47-6-46.us-west-2.compute.internal:51169) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/14 on hostPort ip-10-47-6-46.us-west-2.compute.internal:51169 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/15 on worker-20150324230444-ip-10-43-128-142.us-west-2.compute.internal-58814 (ip-10-43-128-142.us-west-2.compute.internal:58814) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/15 on hostPort ip-10-43-128-142.us-west-2.compute.internal:58814 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/16 on worker-20150324230444-ip-10-43-128-66.us-west-2.compute.internal-34398 (ip-10-43-128-66.us-west-2.compute.internal:34398) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/16 on hostPort ip-10-43-128-66.us-west-2.compute.internal:34398 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/17 on worker-20150324230444-ip-10-33-7-18.us-west-2.compute.internal-55388 (ip-10-33-7-18.us-west-2.compute.internal:55388) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/17 on hostPort ip-10-33-7-18.us-west-2.compute.internal:55388 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/18 on worker-20150324230444-ip-10-205-131-47.us-west-2.compute.internal-44910 (ip-10-205-131-47.us-west-2.compute.internal:44910) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/18 on hostPort ip-10-205-131-47.us-west-2.compute.internal:44910 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor added: app-20150326025940-0044/19 on worker-20150324230444-ip-10-47-4-108.us-west-2.compute.internal-41389 (ip-10-47-4-108.us-west-2.compute.internal:41389) with 32 cores
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: Granted executor ID app-20150326025940-0044/19 on hostPort ip-10-47-4-108.us-west-2.compute.internal:41389 with 32 cores, 100.0 GB RAM
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/0 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/2 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/3 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/1 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/5 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/9 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/14 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/13 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/10 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/7 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/4 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/11 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/16 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/12 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/18 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/17 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/15 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/0 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/1 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/2 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/3 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/4 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/5 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/6 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/8 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/7 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/8 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/9 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/19 is now LOADING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/10 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/11 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/12 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/13 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/14 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/15 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/16 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/17 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/18 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/19 is now RUNNING
+15/03/26 02:59:40 INFO client.AppClient$ClientActor: Executor updated: app-20150326025940-0044/6 is now LOADING
+15/03/26 02:59:40 INFO netty.NettyBlockTransferService: Server created on 38834
+15/03/26 02:59:40 INFO storage.BlockManagerMaster: Trying to register BlockManager
+15/03/26 02:59:40 INFO storage.BlockManagerMasterActor: Registering block manager ip-10-47-4-131.us-west-2.compute.internal:38834 with 51.8 GB RAM, BlockManagerId(<driver>, ip-10-47-4-131.us-west-2.compute.internal, 38834)
+15/03/26 02:59:40 INFO storage.BlockManagerMaster: Registered BlockManager
+15/03/26 02:59:40 INFO cluster.SparkDeploySchedulerBackend: SchedulerBackend is ready for scheduling beginning after reached minRegisteredResourcesRatio: 0.0
+graphType      = file
+rMatNumEdges   = 100000000
+path           = /astro.edges
+numPartitions  = 640
+epsilon        = 0.5
+checkpointIter = 20
+15/03/26 02:59:41 WARN snappy.LoadSnappy: Snappy native library is available
+Graph has 18772 vertices (640 partitions),396160 edges (640 partitions),eps = 0.5
+qq	0	972	7	14268	
+qq	1	948	11	14373	
+qq	2	944	6	13382	
+qq	3	930	11	17481	
+qq	4	920	10	14740	
+qq	5	900	17	17684	
+qq	6	596	13	15476	
+qq	7	576	16	21990	
+qq	8	562	14	18705	
+qq	9	552	14	21830	
+qq	10	538	15	30459	
+qq	11	414	16	20643	
+qq	12	406	22	28168	
+qq	13	328	17	29052	
+qq	14	294	30	33027	
+qq	15	288	27	34184	
+qq	16	262	25	34975	
+qq	17	262	28	39688	
+qq	18	260	28	39322	
+qq	19	252	25	57783	
+qq	20	252	26	14832	
+qq	21	246	24	11635	
+qq	22	216	31	11033	
+qq	23	216	22	13142	
+qq	24	216	23	14909	
+qq	25	216	36	13292	
+qq	26	216	31	16702	
+qq	27	204	21	13536	
+qq	28	146	32	20214	
+qq	29	146	42	18615	
+qq	30	144	35	17526	
+qq	31	144	38	21717	
+qq	32	144	33	23560	
+qq	33	136	28	23613	
+qq	34	136	51	28284	
+qq	35	136	37	28113	
+qq	36	136	32	33461	
+qq	37	136	48	31851	
+qq	38	136	40	34679	
+Warning: $HADOOP_HOME is deprecated.
+
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/19
+qq	39	136	32	49962	
+qq	40	136	38	12878	
+qq	41	136	33	10522	
+qq	42	84	40	9999	
+qq	43	84	64	13045	
+qq	44	84	45	12399	
+qq	45	84	50	14497	
+qq	46	74	56	15902	
+qq	47	74	50	13950	
+qq	48	74	55	16438	
+qq	49	74	59	17150	
+qq	50	56	52	17578	
+qq	51	56	62	20384	
+qq	52	56	67	21164	
+qq	53	56	62	22640	
+qq	54	56	78	27314	
+qq	55	48	56	26464	
+qq	56	48	58	31024	
+qq	57	48	75	34782	
+qq	58	36	51	34613	
+Warning: $HADOOP_HOME is deprecated.
+
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/39
+qq	59	36	83	54418	
+qq	60	36	78	12699	
+qq	61	36	80	15048	
+qq	62	32	60	11526	
+qq	63	30	79	11010	
+qq	64	24	81	13130	
+qq	65	24	106	14616	
+qq	66	24	89	15839	
+qq	67	24	107	18068	
+qq	68	24	81	17884	
+qq	69	24	86	20217	
+qq	70	24	73	21897	
+qq	71	24	92	23312	
+qq	72	24	83	23669	
+qq	73	24	89	24116	
+qq	74	24	63	26157	
+qq	75	18	59	29679	
+qq	76	12	75	31372	
+qq	77	12	121	34537	
+qq	78	12	111	35040	
+Warning: $HADOOP_HOME is deprecated.
+
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/59
+qq	79	12	112	51829	
+qq	80	10	117	13368	
+qq	81	10	116	11494	
+qq	82	10	98	11835	
+qq	83	10	116	15221	
+qq	84	10	73	13703	
+qq	85	10	76	13801	
+qq	86	8	82	18897	
+qq	87	8	92	17341	
+qq	88	8	83	18345	
+qq	89	8	59	18357	
+qq	90	8	60	21156	
+qq	91	4	67	22531	
+qq	92	4	100	22889	
+qq	93	4	128	24391	
+qq	94	4	92	26531	
+qq	95	4	83	26827	
+qq	96	2	63	31894	
+qq	97	2	112	34099	
+qq	98	2	64	37800	
+Warning: $HADOOP_HOME is deprecated.
+
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints/79
+qq	99	2	52	52938	
+qq	100	2	35	13688	
+qq	101	2	42	12574	
+qq	102	0	22	13364	
+Warning: $HADOOP_HOME is deprecated.
+
+Deleted hdfs://ec2-54-71-140-56.us-west-2.compute.amazonaws.com:9000/mnt/checkpoints
+621343
