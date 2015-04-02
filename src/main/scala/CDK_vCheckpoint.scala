@@ -179,7 +179,7 @@ object CDK_vCheckpoint {
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
-      if ((iteration % maxDegRecomputeRounds) == 0) {
+      if (((iteration+1) % maxDegRecomputeRounds) == 0) {
         degrees = clusterGraph.aggregateMessages[Int](
           triplet => {
             if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
