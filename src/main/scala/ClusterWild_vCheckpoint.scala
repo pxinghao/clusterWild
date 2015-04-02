@@ -13,18 +13,22 @@ import scala.sys.process._
 object ClusterWild_vCheckpoint {
   def main(args: Array[String]) = {
 
-    System.setProperty("spark.worker.timeout",                  "30000")
-    System.setProperty("spark.akka.timeout",                    "30000")
-    System.setProperty("spark.storage.blockManagerHeartBeatMs", "300000")
-    System.setProperty("spark.akka.retry.wait",                 "30000")
-    System.setProperty("spark.akka.frameSize",                  "10000")
+    System.setProperty("spark.worker.timeout",                     "30000")
+    System.setProperty("spark.storage.blockManagerHeartBeatMs",    "5000")
+    System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
+    System.setProperty("spark.akka.timeout",                       "30000")
+    System.setProperty("spark.akka.retry.wait",                    "30000")
+    System.setProperty("spark.akka.frameSize",                     "10000")
+    System.setProperty("spark.locality.wait",                      "300000000000")
     val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
-      ("spark.worker.timeout",                  "30000"),
-      ("spark.akka.timeout",                    "30000"),
-      ("spark.storage.blockManagerHeartBeatMs", "300000"),
-      ("spark.akka.retry.wait",                 "30000"),
-      ("spark.akka.frameSize",                  "10000"),
-      ("spark.logConf",                         "true")
+      ("spark.worker.timeout",                     "30000"),
+      ("spark.storage.blockManagerHeartBeatMs",    "5000"),
+      ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
+      ("spark.akka.timeout",                       "30000"),
+      ("spark.akka.retry.wait",                    "30000"),
+      ("spark.akka.frameSize",                     "10000"),
+      ("spark.locality.wait",                      "300000000000"),
+      ("spark.logConf",                            "true")
     )))
 
     Logger.getLogger("org").setLevel(Level.WARN)
@@ -44,7 +48,7 @@ object ClusterWild_vCheckpoint {
     val epsilon         : Double  = argmap.getOrElse("epsilon", "0.5").toDouble
     val checkpointIter  : Int     = argmap.getOrElse("checkpointiter", "20").toInt
     val checkpointDir   : String  = argmap.getOrElse("checkpointdir", "/mnt/checkpoints/")
-//    val checkpointDir  : String = argmap.getOrElse("checkpointdir", "/Users/xinghao/Documents/tempcheckpoint")
+    //    val checkpointDir  : String = argmap.getOrElse("checkpointdir", "/Users/xinghao/Documents/tempcheckpoint")
     val checkpointClean : Boolean = argmap.getOrElse("checkpointclean", "true").toBoolean
     val checkpointLocal : Boolean = argmap.getOrElse("checkpointlocal", "false").toBoolean
 
