@@ -76,8 +76,12 @@ object ClusterWild_vCheckpoint {
       else
         GraphLoader.edgeListFile(sc, path, false, numPartitions)
 
+    val numVertices = graph.vertices.count
+    val logN = math.floor(math.log(numVertices.toDouble))
+    val maxDegRecomputeRounds = logN//math.floor(2.0 / epsilon * logN.toDouble)
+
     System.out.println(
-        s"Graph has ${graph.vertices.count} vertices (${graph.vertices.partitions.length} partitions),"
+        s"Graph has $numVertices vertices (${graph.vertices.partitions.length} partitions),"
       + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
       + s"eps = $epsilon"
     )
@@ -116,8 +120,8 @@ object ClusterWild_vCheckpoint {
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-//      clusterGraph.vertices.foreachPartition(_ => {})
-//      clusterGraph.triplets.foreachPartition(_ => {})
+      clusterGraph.vertices.foreachPartition(_ => {})
+      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
@@ -142,17 +146,19 @@ object ClusterWild_vCheckpoint {
         clusterGraph.checkpoint()
       }
 
-      maxDeg = clusterGraph.aggregateMessages[Int](
-        triplet => {
-          if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
-            triplet.sendToDst(1)
-          }
-        }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      if (((iteration+1) % maxDegRecomputeRounds) == 0) {
+        maxDeg = clusterGraph.aggregateMessages[Int](
+          triplet => {
+            if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
+              triplet.sendToDst(1)
+            }
+          }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      }
 
       prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-//      clusterGraph.vertices.foreachPartition(_ => {})
-//      clusterGraph.triplets.foreachPartition(_ => {})
+      clusterGraph.vertices.foreachPartition(_ => {})
+      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
