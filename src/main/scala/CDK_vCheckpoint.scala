@@ -191,6 +191,8 @@ object CDK_vCheckpoint {
         maxDeg = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
       }
 
+      clusterGraph.edges.partitions.foreach(p => System.out.println(clusterGraph.edges.preferredLocations(p)))
+
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)

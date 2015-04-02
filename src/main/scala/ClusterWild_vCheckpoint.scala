@@ -160,6 +160,8 @@ object ClusterWild_vCheckpoint {
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
+      clusterGraph.edges.partitions.foreach(p => System.out.println(clusterGraph.edges.preferredLocations(p)))
+
       if (((iteration+1) % maxDegRecomputeRounds) == 0) {
         degrees = clusterGraph.aggregateMessages[Int](
           triplet => {
