@@ -111,7 +111,7 @@ object ClusterWild_vCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-//      clusterGraph.cache()
+      clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache().setName("r" + iteration)
 //      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
@@ -122,13 +122,11 @@ object ClusterWild_vCheckpoint {
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.vertices.setName("v" + iteration + ".1")
       clusterGraph.edges.setName(   "e" + iteration + ".1")
-//      clusterGraph.vertices.count()
-//      clusterGraph.edges.count()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //      clusterGraph.vertices.foreachPartition(_ => {})
 //      clusterGraph.triplets.foreachPartition(_ => {})
-//      prevRankGraph.vertices.unpersist(false)
-//      prevRankGraph.edges.unpersist(false)
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -159,13 +157,11 @@ object ClusterWild_vCheckpoint {
       clusterGraph.cache()
       clusterGraph.vertices.setName("v" + iteration + ".2")
       clusterGraph.edges.setName(   "e" + iteration + ".2")
-//      clusterGraph.vertices.count()
-//      clusterGraph.edges.count()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //      clusterGraph.vertices.foreachPartition(_ => {})
 //      clusterGraph.triplets.foreachPartition(_ => {})
-//      prevRankGraph.vertices.unpersist(false)
-//      prevRankGraph.edges.unpersist(false)
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
 //      clusterGraph.edges.partitions.foreach(p => System.out.println(clusterGraph.edges.preferredLocations(p)))
 
@@ -188,8 +184,8 @@ object ClusterWild_vCheckpoint {
         }
       }
 
-//      randomSet.unpersist(false)
-//      clusterUpdates.unpersist(false)
+      randomSet.unpersist(false)
+      clusterUpdates.unpersist(false)
 
 
       times(1) = System.currentTimeMillis()
