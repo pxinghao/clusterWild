@@ -14,18 +14,20 @@ object ClusterWild_vCheckpoint {
   def main(args: Array[String]) = {
 
     System.setProperty("spark.worker.timeout",                     "30000")
-    System.setProperty("spark.akka.timeout",                       "30000")
     System.setProperty("spark.storage.blockManagerHeartBeatMs",    "5000")
+    System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
+    System.setProperty("spark.akka.timeout",                       "30000")
     System.setProperty("spark.akka.retry.wait",                    "30000")
     System.setProperty("spark.akka.frameSize",                     "10000")
-    System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
+    System.setProperty("spark.locality.wait",                      "10000")
     val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
       ("spark.worker.timeout",                     "30000"),
-      ("spark.akka.timeout",                       "30000"),
       ("spark.storage.blockManagerHeartBeatMs",    "5000"),
+      ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
+      ("spark.akka.timeout",                       "30000"),
       ("spark.akka.retry.wait",                    "30000"),
       ("spark.akka.frameSize",                     "10000"),
-      ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
+      ("spark.locality.wait",                      "10000"),
       ("spark.logConf",                            "true")
     )))
 
