@@ -127,8 +127,8 @@ object ClusterWild_vCheckpoint {
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //      clusterGraph.vertices.foreachPartition(_ => {})
 //      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -164,8 +164,8 @@ object ClusterWild_vCheckpoint {
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //      clusterGraph.vertices.foreachPartition(_ => {})
 //      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
 //      clusterGraph.edges.partitions.foreach(p => System.out.println(clusterGraph.edges.preferredLocations(p)))
 
@@ -188,8 +188,8 @@ object ClusterWild_vCheckpoint {
         }
       }
 
-      randomSet.unpersist(false)
-      clusterUpdates.unpersist(false)
+//      randomSet.unpersist(false)
+//      clusterUpdates.unpersist(false)
 
 
       times(1) = System.currentTimeMillis()
