@@ -109,7 +109,7 @@ object ClusterWild_vCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      clusterGraph.cache()
+//      clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
       if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
@@ -119,8 +119,8 @@ object ClusterWild_vCheckpoint {
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
@@ -134,9 +134,11 @@ object ClusterWild_vCheckpoint {
 
       if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
+      prevRankGraph = clusterGraph
+
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
-      }.cache()
+      }
 
       if ((iteration+1) % checkpointIter == 0) {
         clusterGraph.vertices.checkpoint()
@@ -144,6 +146,13 @@ object ClusterWild_vCheckpoint {
 //        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
       }
+
+      clusterGraph.cache()
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       if ((iteration % maxDegRecomputeRounds) == 0) {
         degrees = clusterGraph.aggregateMessages[Int](
@@ -155,13 +164,6 @@ object ClusterWild_vCheckpoint {
         maxDeg = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
       }
 
-      prevRankGraph = clusterGraph
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
-
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)
@@ -170,6 +172,9 @@ object ClusterWild_vCheckpoint {
             Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
         }
       }
+
+      randomSet.unpersist(false)
+      clusterUpdates.unpersist(false)
 
 
       times(1) = System.currentTimeMillis()

@@ -88,7 +88,6 @@ object CDK_vCheckpoint {
     val vertexRDDs: VertexRDD[Int] = graph.vertices
     val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
-    var hasFriends: RDD[(org.apache.spark.graphx.VertexId, Int)] = null
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
 //    val epsilon: Double = 0.5
@@ -110,7 +109,7 @@ object CDK_vCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      clusterGraph.cache()
+//      clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
       if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
@@ -120,23 +119,29 @@ object CDK_vCheckpoint {
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
       //Turn-off active nodes that are friends
       // activeSubgraph = unclusterGraph.subgraph(vpred = (id, attr) => attr == -1).cache()
       // hasFriends = unclusterGraph.degrees.filter{case (id, u) => u > 0}.cache()
-      hasFriends = clusterGraph.aggregateMessages[Int](
+      val hasFriends = clusterGraph.aggregateMessages[Int](
         triplet => {
           if (triplet.dstAttr == -1 & triplet.srcAttr == -1) {
             triplet.sendToDst(1)
           }
         }, math.min(_, _)
-      )
-      clusterGraph = clusterGraph.joinVertices(hasFriends)((vId, attr, active) => -100).cache()
+      ).cache()
 
+      prevRankGraph = clusterGraph
+      clusterGraph = clusterGraph.joinVertices(hasFriends)((vId, attr, active) => -100).cache()
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -148,9 +153,11 @@ object CDK_vCheckpoint {
 
       if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
+      prevRankGraph = clusterGraph
+
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
-      }.cache()
+      }
 
       if ((iteration+1) % checkpointIter == 0) {
         clusterGraph.vertices.checkpoint()
@@ -158,6 +165,13 @@ object CDK_vCheckpoint {
 //        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
       }
+
+      clusterGraph.cache()
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       if ((iteration % maxDegRecomputeRounds) == 0) {
         degrees = clusterGraph.aggregateMessages[Int](
@@ -169,13 +183,6 @@ object CDK_vCheckpoint {
         maxDeg = if (degrees.count == 0) 0 else degrees.reduce((a, b) => math.max(a, b))
       }
 
-      prevRankGraph = clusterGraph
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
-
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)
@@ -185,6 +192,9 @@ object CDK_vCheckpoint {
         }
       }
 
+      randomSet.unpersist(false)
+      clusterUpdates.unpersist(false)
+      hasFriends.unpersist(false)
 
       times(1) = System.currentTimeMillis()
 
