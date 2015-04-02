@@ -20,13 +20,13 @@ object CDK_vCheckpoint {
     System.setProperty("spark.akka.frameSize",                     "10000")
     System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
     val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
-      ("spark.worker.timeout",                  "30000"),
-      ("spark.akka.timeout",                    "30000"),
-      ("spark.storage.blockManagerHeartBeatMs", "5000"),
-      ("spark.akka.retry.wait",                 "30000"),
-      ("spark.akka.frameSize",                  "10000"),
+      ("spark.worker.timeout",                     "30000"),
+      ("spark.akka.timeout",                       "30000"),
+      ("spark.storage.blockManagerHeartBeatMs",    "5000"),
+      ("spark.akka.retry.wait",                    "30000"),
+      ("spark.akka.frameSize",                     "10000"),
       ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
-      ("spark.logConf",                         "true")
+      ("spark.logConf",                            "true")
     )))
 
     Logger.getLogger("org").setLevel(Level.WARN)
