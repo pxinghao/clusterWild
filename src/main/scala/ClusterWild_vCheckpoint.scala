@@ -145,6 +145,7 @@ object ClusterWild_vCheckpoint {
       }
 
       if ((iteration+1) % checkpointIter == 0) {
+        clusterGraph.cache()
 //        clusterGraph.vertices.checkpoint()
 //        clusterGraph.edges.checkpoint()
 //        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
@@ -160,7 +161,7 @@ object ClusterWild_vCheckpoint {
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
-      clusterGraph.edges.partitions.foreach(p => System.out.println(clusterGraph.edges.preferredLocations(p)))
+//      clusterGraph.edges.partitions.foreach(p => System.out.println(clusterGraph.edges.preferredLocations(p)))
 
       if (((iteration+1) % maxDegRecomputeRounds) == 0) {
         degrees = clusterGraph.aggregateMessages[Int](
