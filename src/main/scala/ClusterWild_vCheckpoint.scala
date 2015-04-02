@@ -150,10 +150,10 @@ object ClusterWild_vCheckpoint {
         clusterGraph.cache()
         clusterGraph.vertices.setName("v" + iteration + ".3")
         clusterGraph.edges.setName(   "e" + iteration + ".3")
-//        clusterGraph.vertices.checkpoint()
-//        clusterGraph.edges.checkpoint()
+        clusterGraph.vertices.checkpoint()
+        clusterGraph.edges.checkpoint()
 //        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
-        clusterGraph.checkpoint()
+//        clusterGraph.checkpoint()
       }
 
       clusterGraph.cache()
