@@ -139,7 +139,7 @@ object ClusterWild_vCheckpoint {
       if (iteration % checkpointIter == 0) {
         clusterGraph.vertices.checkpoint()
         clusterGraph.edges.checkpoint()
-        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+//        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
       }
 
