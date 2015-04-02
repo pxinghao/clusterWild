@@ -117,8 +117,8 @@ object ClusterWild_vCheckpoint {
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
@@ -155,8 +155,8 @@ object ClusterWild_vCheckpoint {
 
       prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      clusterGraph.triplets.foreachPartition(_ => {})
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
 
