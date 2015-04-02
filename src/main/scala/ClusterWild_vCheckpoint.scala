@@ -113,13 +113,15 @@ object ClusterWild_vCheckpoint {
 
 //      clusterGraph.cache()
 
-      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
+      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache().setName("r" + iteration)
 //      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
 
       numNewCenters = randomSet.count
 
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
+      clusterGraph.vertices.setName("v" + iteration + ".1")
+      clusterGraph.edges.setName(   "e" + iteration + ".1")
 //      clusterGraph.vertices.count()
 //      clusterGraph.edges.count()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
@@ -134,7 +136,7 @@ object ClusterWild_vCheckpoint {
             triplet.sendToDst(triplet.srcId.toInt)
           }
         }, math.min(_, _)
-      ).cache()
+      ).cache().setName("u" + iteration)
 
 //      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
@@ -146,6 +148,8 @@ object ClusterWild_vCheckpoint {
 
       if ((iteration+1) % checkpointIter == 0) {
         clusterGraph.cache()
+        clusterGraph.vertices.setName("v" + iteration + ".3")
+        clusterGraph.edges.setName(   "e" + iteration + ".3")
 //        clusterGraph.vertices.checkpoint()
 //        clusterGraph.edges.checkpoint()
 //        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
@@ -153,6 +157,8 @@ object ClusterWild_vCheckpoint {
       }
 
       clusterGraph.cache()
+      clusterGraph.vertices.setName("v" + iteration + ".2")
+      clusterGraph.edges.setName(   "e" + iteration + ".2")
 //      clusterGraph.vertices.count()
 //      clusterGraph.edges.count()
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
