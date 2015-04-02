@@ -116,13 +116,13 @@ object ClusterWild_vCheckpoint {
 
       numNewCenters = randomSet.count
 
-      prevRankGraph = clusterGraph
+//      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //      clusterGraph.vertices.foreachPartition(_ => {})
 //      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
