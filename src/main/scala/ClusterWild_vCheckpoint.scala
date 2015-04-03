@@ -110,7 +110,7 @@ object ClusterWild_vCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      clusterGraph.cache()
+      clusterGraph = clusterGraph.cache()
 
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
       if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
@@ -141,10 +141,10 @@ object ClusterWild_vCheckpoint {
       }.cache()
 
       if ((iteration+1) % checkpointIter == 0) {
-        clusterGraph.vertices.checkpoint()
-        clusterGraph.edges.checkpoint()
-        clusterGraph.triplets.checkpoint()
-//        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+        clusterGraph = clusterGraph.cache()
+//        clusterGraph.vertices.checkpoint()
+//        clusterGraph.edges.checkpoint()
+        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
         clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
         clusterGraph.vertices.filter(_=>false).count()
