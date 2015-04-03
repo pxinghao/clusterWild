@@ -135,6 +135,7 @@ object ClusterWild_vCheckpoint {
 
       if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
+      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
       }.cache()
@@ -142,10 +143,10 @@ object ClusterWild_vCheckpoint {
       if ((iteration+1) % checkpointIter == 0) {
         clusterGraph.vertices.checkpoint()
         clusterGraph.edges.checkpoint()
-        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+//        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
 //        clusterGraph.checkpoint()
         clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
-        clusterGraph.numVertices
+        clusterGraph.vertices.filter(_=>false).count()
       }
 
       if (((iteration+1) % maxDegRecomputeRounds) == 0) {
@@ -157,7 +158,6 @@ object ClusterWild_vCheckpoint {
           }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
       }
 
-      prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
       clusterGraph.triplets.foreachPartition(_ => {})
