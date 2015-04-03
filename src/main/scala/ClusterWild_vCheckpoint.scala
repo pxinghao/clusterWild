@@ -18,7 +18,7 @@ object ClusterWild_vCheckpoint {
     System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
     System.setProperty("spark.akka.timeout",                       "30000")
     System.setProperty("spark.akka.retry.wait",                    "30000")
-    System.setProperty("spark.akka.frameSize",                     "10000")
+    System.setProperty("spark.akka.frameSize",                     "2047")
     System.setProperty("spark.locality.wait",                      "300000000000")
     val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
       ("spark.worker.timeout",                     "30000"),
@@ -26,7 +26,7 @@ object ClusterWild_vCheckpoint {
       ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
       ("spark.akka.timeout",                       "30000"),
       ("spark.akka.retry.wait",                    "30000"),
-      ("spark.akka.frameSize",                     "10000"),
+      ("spark.akka.frameSize",                     "2047"),
       ("spark.locality.wait",                      "300000000000"),
       ("spark.logConf",                            "true")
     )))
