@@ -123,16 +123,17 @@ object SimpleCheckpoint {
       clusterUpdates.foreachPartition(_ => {})
       if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
-//      prevRankGraph = clusterGraph
+      prevRankGraph = clusterGraph
 //      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
 //        (vId, oldAttr, newAttr) => newAttr
 //      }
-//      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
-//      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
-//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-//      clusterGraph.vertices.foreachPartition(_ => {})
-//      prevRankGraph.vertices.unpersist(false)
-//      prevRankGraph.edges.unpersist(false)
+      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
+      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
+      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+      clusterGraph.vertices.foreachPartition(_ => {})
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
 
 
