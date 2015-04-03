@@ -102,16 +102,16 @@ object SimpleCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
-
-      prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
-      clusterGraph.vertices.cache().setName("v" + iteration + ".1")
-      clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
+//
+//      prevRankGraph = clusterGraph
+//      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
+//      clusterGraph.vertices.cache().setName("v" + iteration + ".1")
+//      clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
+//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -124,10 +124,10 @@ object SimpleCheckpoint {
       if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
       prevRankGraph = clusterGraph
-//      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
-//        (vId, oldAttr, newAttr) => newAttr
-//      }
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
+      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
+        (vId, oldAttr, newAttr) => newAttr
+      }
+//      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
       clusterGraph.vertices.cache().setName("v" + iteration + ".2")
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
