@@ -150,7 +150,7 @@ object ClusterWild_vCheckpoint {
         clusterGraph.triplets.foreachPartition(_ => {})
       }
 
-      if (((iteration+1) % maxDegRecomputeRounds) == 0) {
+      if (true || ((iteration+1) % maxDegRecomputeRounds) == 0) {
         maxDeg = clusterGraph.aggregateMessages[Int](
           triplet => {
             if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
