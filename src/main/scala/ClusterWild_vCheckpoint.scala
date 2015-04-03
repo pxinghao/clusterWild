@@ -143,8 +143,9 @@ object ClusterWild_vCheckpoint {
         clusterGraph.vertices.checkpoint()
         clusterGraph.edges.checkpoint()
         clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
-        clusterGraph.checkpoint()
+//        clusterGraph.checkpoint()
         clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
+        clusterGraph.numVertices
       }
 
       if (((iteration+1) % maxDegRecomputeRounds) == 0) {
