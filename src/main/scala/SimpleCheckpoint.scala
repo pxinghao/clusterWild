@@ -106,12 +106,29 @@ object SimpleCheckpoint {
 
       prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
-      clusterGraph.vertices.cache().setName("v" + iteration)
-      clusterGraph.edges.cache(   ).setName("e" + iteration)
+      clusterGraph.vertices.cache().setName("v" + iteration + ".1")
+      clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
+
+      val clusterUpdates = clusterGraph.aggregateMessages[Int](
+        triplet => {
+          if (triplet.srcAttr == initID & triplet.dstAttr == initID) {
+            triplet.sendToDst(triplet.srcId.toInt)
+          }
+        }, math.min(_, _)
+      ).cache().setName("u" + iteration)
+      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
+
+      prevRankGraph = clusterGraph
+      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
+        (vId, oldAttr, newAttr) => newAttr
+      }
+      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
+      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
+
 
       if ((iteration+1) % checkpointIter == 0) {
         clusterGraph.checkpoint()
@@ -121,6 +138,10 @@ object SimpleCheckpoint {
         clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
         clusterGraph.vertices.foreachPartition(_ => {})
       }
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+      clusterGraph.vertices.foreachPartition(_ => {})
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
