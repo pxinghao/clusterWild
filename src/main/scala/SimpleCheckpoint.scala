@@ -128,6 +128,15 @@ object SimpleCheckpoint {
 //        clusterGraph.vertices.filter(_=>false).count()
       }
 
+      if ((iteration+1) % checkpointIter == 0){
+        if (checkpointClean && iteration-checkpointIter >= 0) {
+          if (checkpointLocal)
+            Seq("rm", "-rf", checkpointDir + (iteration - checkpointIter).toString).!
+          else
+            Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
+        }
+      }
+      
       times(1) = System.currentTimeMillis()
 
       System.out.println(
@@ -136,7 +145,7 @@ object SimpleCheckpoint {
           s"${times(1)-times(0)}\t" +
           "")
 
-      if (2*(iteration+1) % checkpointIter == 0){
+      if ((iteration+1) % (2*checkpointIter) == 0){
         while (true){}
       }
       iteration += 1
