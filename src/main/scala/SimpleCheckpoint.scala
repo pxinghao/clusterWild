@@ -136,7 +136,7 @@ object SimpleCheckpoint {
       ).cache().setName("u" + iteration)
 //      clusterUpdates.foreachPartition(_ => {})
 //      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
-      System.out.println(s"#clusterUpdates = ${clusterUpdates.count()}")
+//      System.out.println(s"#clusterUpdates = ${clusterUpdates.count()}")
 
 //      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
@@ -175,7 +175,7 @@ object SimpleCheckpoint {
               triplet.sendToDst(1)
             }
           }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
-        System.out.println(s"Computing maxDeg = $maxDeg")
+//        System.out.println(s"Computing maxDeg = $maxDeg")
       }
 
       times(1) = System.currentTimeMillis()
@@ -186,14 +186,13 @@ object SimpleCheckpoint {
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
           s"${times(1)-times(0)}\t" +
+          s"${clusterGraph.vertices.toDebugString}\t" +
           "")
 
-      if ((iteration+1) % (5*checkpointIter) == 0){
-        while (true){}
-      }
       iteration += 1
     }
 
+    while (true){}
   }
 
 
