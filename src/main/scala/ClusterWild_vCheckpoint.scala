@@ -122,8 +122,8 @@ object ClusterWild_vCheckpoint {
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
       clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -144,6 +144,10 @@ object ClusterWild_vCheckpoint {
         clusterGraph.edges.checkpoint()
         clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
+        clusterGraph.cache()
+        clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+        clusterGraph.vertices.foreachPartition(_ => {})
+        clusterGraph.triplets.foreachPartition(_ => {})
       }
 
       if (((iteration+1) % maxDegRecomputeRounds) == 0) {
@@ -159,8 +163,8 @@ object ClusterWild_vCheckpoint {
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
       clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
