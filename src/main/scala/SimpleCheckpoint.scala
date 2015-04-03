@@ -87,9 +87,9 @@ object SimpleCheckpoint {
     )
 
     //The following is needed for undirected (bi-directional edge) graphs
-//    val vertexRDDs: VertexRDD[Int] = graph.vertices
-//    val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
-    var clusterGraph: Graph[(Int), Int] = graph//Graph(vertexRDDs, edgeRDDs)
+    val vertexRDDs: VertexRDD[Int] = graph.vertices
+    val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
+    var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
     var iteration = 0
@@ -193,6 +193,7 @@ object SimpleCheckpoint {
       iteration += 1
     }
 
+    System.out.println("Done")
     while (true){}
   }
 
