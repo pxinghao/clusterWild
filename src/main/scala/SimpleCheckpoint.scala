@@ -96,7 +96,7 @@ object SimpleCheckpoint {
 
     val times : Array[Long] = new Array[Long](100)
 
-//    var prevRankGraph: Graph[Int, Int] = null
+    var prevRankGraph: Graph[Int, Int] = null
 
     var maxDeg: Int = clusterGraph.aggregateMessages[Int](
       triplet => {
@@ -105,6 +105,7 @@ object SimpleCheckpoint {
         }
       }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
     var numNewCenters: Long = 0
+    var numNewSpokes: Long = 0
 
     while (true){
       times(0) = System.currentTimeMillis()
@@ -120,14 +121,14 @@ object SimpleCheckpoint {
 
       times(1) = System.currentTimeMillis()
 
-//      prevRankGraph = clusterGraph
+      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
       clusterGraph.vertices.cache().setName("v" + iteration + ".1")
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
-//      prevRankGraph.vertices.unpersist(false)
-//      prevRankGraph.edges.unpersist(false)
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       times(2) = System.currentTimeMillis()
 
@@ -140,13 +141,13 @@ object SimpleCheckpoint {
         }, math.min(_, _)
       ).cache().setName("u" + iteration)
 //      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
-      clusterUpdates.foreachPartition(_ => {})
+      numNewSpokes = clusterUpdates.count
 //      System.out.println(s"#clusterUpdates = ${clusterUpdates.count()}")
 
       times(3) = System.currentTimeMillis()
 
 
-//      prevRankGraph = clusterGraph
+      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
       }
@@ -154,8 +155,8 @@ object SimpleCheckpoint {
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
-//      prevRankGraph.vertices.unpersist(false)
-//      prevRankGraph.edges.unpersist(false)
+      prevRankGraph.vertices.unpersist(false)
+      prevRankGraph.edges.unpersist(false)
 
       times(4) = System.currentTimeMillis()
 
@@ -182,6 +183,9 @@ object SimpleCheckpoint {
         }
       }
 
+      randomSet.unpersist(false)
+      clusterUpdates.unpersist(false)
+
       times(6) = System.currentTimeMillis()
 
 
@@ -202,6 +206,7 @@ object SimpleCheckpoint {
           s"$iteration\t" +
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
+          s"$numNewSpokes\t" +
           s"${times(times.length-1)-times(0)}\t" +
           s"${times(1)-times(0)}\t" +
           s"${times(2)-times(1)}\t" +
@@ -209,6 +214,7 @@ object SimpleCheckpoint {
           s"${times(4)-times(3)}\t" +
           s"${times(5)-times(4)}\t" +
           s"${times(6)-times(5)}\t" +
+          s"${times(7)-times(6)}\t" +
           "")
 //      System.out.println(
 //        s"${clusterGraph.vertices.toDebugString.count(_ == '+')}\t" +
