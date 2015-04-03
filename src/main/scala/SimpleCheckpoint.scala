@@ -102,10 +102,10 @@ object SimpleCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
+      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
 
       prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
+      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
       clusterGraph.vertices.cache().setName("v" + iteration)
       clusterGraph.edges.cache(   ).setName("e" + iteration)
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
@@ -114,20 +114,12 @@ object SimpleCheckpoint {
       prevRankGraph.edges.unpersist(false)
 
       if ((iteration+1) % checkpointIter == 0) {
-//        clusterGraph = clusterGraph.cache()
-//        clusterGraph.vertices.checkpoint()
-//        clusterGraph.edges.checkpoint()
-//        clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
-//        clusterGraph.vertices.filter(_=>false).count()
-//        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
         clusterGraph
         clusterGraph.vertices.cache().setName("vc" + iteration)
         clusterGraph.edges.cache(   ).setName("ec" + iteration)
         clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
         clusterGraph.vertices.foreachPartition(_ => {})
-//        clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
-//        clusterGraph.vertices.filter(_=>false).count()
       }
 
       if ((iteration+1) % checkpointIter == 0){
