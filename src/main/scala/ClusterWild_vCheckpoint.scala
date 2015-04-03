@@ -144,14 +144,17 @@ object ClusterWild_vCheckpoint {
         clusterGraph.edges.checkpoint()
         clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
+        clusterGraph.aggregateMessages[Int](_ => {}, _+_)
       }
 
-      maxDeg = clusterGraph.aggregateMessages[Int](
-        triplet => {
-          if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
-            triplet.sendToDst(1)
-          }
-        }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      if (((iteration+1) % maxDegRecomputeRounds) == 0) {
+        maxDeg = clusterGraph.aggregateMessages[Int](
+          triplet => {
+            if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
+              triplet.sendToDst(1)
+            }
+          }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      }
 
       prevRankGraph = clusterGraph
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
