@@ -186,7 +186,8 @@ object SimpleCheckpoint {
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
           s"${times(1)-times(0)}\t" +
-          s"${clusterGraph.vertices.toDebugString}\t" +
+          s"${clusterGraph.vertices.toDebugString.count(_ == '+')}\t" +
+          s"${clusterGraph.edges.toDebugString.count(_ == '+')}\t" +
           "")
 
       iteration += 1
