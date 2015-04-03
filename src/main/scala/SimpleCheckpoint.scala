@@ -115,7 +115,7 @@ object SimpleCheckpoint {
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
-          if (scala.util.Random.nextFloat() > 0.25 && triplet.srcAttr == initID & triplet.dstAttr == initID) {
+          if (scala.util.Random.nextFloat() > 0.01 && triplet.srcAttr == initID & triplet.dstAttr == initID) {
             triplet.sendToDst(triplet.srcId.toInt)
           }
         }, math.min(_, _)
