@@ -136,6 +136,9 @@ object SimpleCheckpoint {
           s"${times(1)-times(0)}\t" +
           "")
 
+      if (2*(iteration+1) % checkpointIter == 0){
+        while (true){}
+      }
       iteration += 1
     }
 
