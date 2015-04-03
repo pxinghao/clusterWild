@@ -118,14 +118,19 @@ object SimpleCheckpoint {
 //      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
       numNewCenters = randomSet.count
 
+      times(1) = System.currentTimeMillis()
+
 //      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
       clusterGraph.vertices.cache().setName("v" + iteration + ".1")
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
-//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-//      clusterGraph.vertices.foreachPartition(_ => {})
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+      clusterGraph.vertices.foreachPartition(_ => {})
 //      prevRankGraph.vertices.unpersist(false)
 //      prevRankGraph.edges.unpersist(false)
+
+      times(2) = System.currentTimeMillis()
+
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
@@ -135,8 +140,11 @@ object SimpleCheckpoint {
         }, math.min(_, _)
       ).cache().setName("u" + iteration)
 //      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
-//      clusterUpdates.foreachPartition(_ => {})
+      clusterUpdates.foreachPartition(_ => {})
 //      System.out.println(s"#clusterUpdates = ${clusterUpdates.count()}")
+
+      times(3) = System.currentTimeMillis()
+
 
 //      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
@@ -149,6 +157,7 @@ object SimpleCheckpoint {
 //      prevRankGraph.vertices.unpersist(false)
 //      prevRankGraph.edges.unpersist(false)
 
+      times(4) = System.currentTimeMillis()
 
 
       if ((iteration+1) % checkpointIter == 0) {
@@ -160,6 +169,10 @@ object SimpleCheckpoint {
         clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
         clusterGraph.vertices.foreachPartition(_ => {})
       }
+
+      times(5) = System.currentTimeMillis()
+
+
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)
@@ -168,6 +181,9 @@ object SimpleCheckpoint {
             Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
         }
       }
+
+      times(6) = System.currentTimeMillis()
+
 
       if (((iteration+1) % maxDegRecomputeRounds) == 0) {
         maxDeg = clusterGraph.aggregateMessages[Int](
@@ -179,14 +195,20 @@ object SimpleCheckpoint {
 //        System.out.println(s"Computing maxDeg = $maxDeg")
       }
 
-      times(1) = System.currentTimeMillis()
+      times(times.length-1) = System.currentTimeMillis()
 
       System.out.println(
         "qq\t" +
           s"$iteration\t" +
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
+          s"${times(times.length-1)-times(0)}\t" +
           s"${times(1)-times(0)}\t" +
+          s"${times(2)-times(1)}\t" +
+          s"${times(3)-times(2)}\t" +
+          s"${times(4)-times(3)}\t" +
+          s"${times(5)-times(4)}\t" +
+          s"${times(6)-times(5)}\t" +
           "")
 //      System.out.println(
 //        s"${clusterGraph.vertices.toDebugString.count(_ == '+')}\t" +
