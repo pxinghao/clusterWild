@@ -115,19 +115,25 @@ object SimpleCheckpoint {
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
-          if (triplet.srcAttr == initID & triplet.dstAttr == initID) {
+          if (scala.util.Random.nextFloat() > 0.25 && triplet.srcAttr == initID & triplet.dstAttr == initID) {
             triplet.sendToDst(triplet.srcId.toInt)
           }
         }, math.min(_, _)
       ).cache().setName("u" + iteration)
+      clusterUpdates.foreachPartition(_ => {})
       if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
-      prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
-        (vId, oldAttr, newAttr) => newAttr
-      }
-      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
-      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
+//      prevRankGraph = clusterGraph
+//      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
+//        (vId, oldAttr, newAttr) => newAttr
+//      }
+//      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
+//      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
+//      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+//      clusterGraph.vertices.foreachPartition(_ => {})
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
+
 
 
       if ((iteration+1) % checkpointIter == 0) {
@@ -138,11 +144,6 @@ object SimpleCheckpoint {
         clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
         clusterGraph.vertices.foreachPartition(_ => {})
       }
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
-
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)
