@@ -199,7 +199,7 @@ object SimpleCheckpoint {
 //        System.out.println(s"Computing maxDeg = $maxDeg")
       }
 
-      times(times.length-1) = System.currentTimeMillis()
+      times(7) = System.currentTimeMillis()
 
       System.out.println(
         "qq\t" +
@@ -207,7 +207,7 @@ object SimpleCheckpoint {
           s"$maxDeg\t" +
           s"$numNewCenters\t" +
           s"$numNewSpokes\t" +
-          s"${times(times.length-1)-times(0)}\t" +
+          s"${times(7)-times(0)}\t" +
           s"${times(1)-times(0)}\t" +
           s"${times(2)-times(1)}\t" +
           s"${times(3)-times(2)}\t" +
