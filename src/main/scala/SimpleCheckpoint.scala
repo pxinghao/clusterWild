@@ -114,7 +114,7 @@ object SimpleCheckpoint {
 //      clusterGraph.vertices.cache().setName("v" + iteration + ".0")
 //      clusterGraph.edges.cache(   ).setName("e" + iteration + ".0")
 
-      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache().setName("r" + iteration)
+      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat))//.cache().setName("r" + iteration)
 //      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
       numNewCenters = randomSet.count
 
@@ -133,9 +133,9 @@ object SimpleCheckpoint {
             triplet.sendToDst(triplet.srcId.toInt)
           }
         }, math.min(_, _)
-      ).cache().setName("u" + iteration)
-      clusterUpdates.foreachPartition(_ => {})
-      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
+      )//.cache().setName("u" + iteration)
+//      clusterUpdates.foreachPartition(_ => {})
+//      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
 
 //      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
@@ -174,6 +174,7 @@ object SimpleCheckpoint {
               triplet.sendToDst(1)
             }
           }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+        System.out.println(s"Computing maxDeg = $maxDeg")
       }
 
       times(1) = System.currentTimeMillis()
