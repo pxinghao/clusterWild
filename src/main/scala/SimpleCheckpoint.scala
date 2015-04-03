@@ -98,16 +98,18 @@ object SimpleCheckpoint {
 
 //    var prevRankGraph: Graph[Int, Int] = null
 
+    var maxDeg = 10000
+
     while (true){
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
+      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache().setName("r" + iteration)
 //
 //      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
-//      clusterGraph.vertices.cache().setName("v" + iteration + ".1")
-//      clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
+      clusterGraph.vertices.cache().setName("v" + iteration + ".1")
+      clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
 //      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
 //      clusterGraph.vertices.foreachPartition(_ => {})
 //      prevRankGraph.vertices.unpersist(false)
@@ -115,7 +117,7 @@ object SimpleCheckpoint {
 
       val clusterUpdates = clusterGraph.aggregateMessages[Int](
         triplet => {
-          if (scala.util.Random.nextFloat() > 0.01 && triplet.srcAttr == initID & triplet.dstAttr == initID) {
+          if (triplet.srcAttr == centerID & triplet.dstAttr == initID) {
             triplet.sendToDst(triplet.srcId.toInt)
           }
         }, math.min(_, _)
