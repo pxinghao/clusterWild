@@ -10,7 +10,7 @@ import scala.sys.process._
 /**
  * Created by xinghao on 3/10/15.
  */
-object ClusterWild_vCheckpoint {
+object SimpleCheckpoint {
   def main(args: Array[String]) = {
 
     System.setProperty("spark.worker.timeout",                     "30000")
@@ -67,8 +67,8 @@ object ClusterWild_vCheckpoint {
 //    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numPartitions)
     */
 
-    val initID   : Int = -100
-    val centerID : Int = -200
+    val initID: Int = -100
+    val centerID: Int = -200
 
     val graph: Graph[(Int), Int] =
       if (graphType == "rmat")
@@ -78,132 +78,68 @@ object ClusterWild_vCheckpoint {
 
     val numVertices = graph.vertices.count
     val logN = math.floor(math.log(numVertices.toDouble))
-    val maxDegRecomputeRounds = logN//math.floor(2.0 / epsilon * logN.toDouble)
+    val maxDegRecomputeRounds = logN //math.floor(2.0 / epsilon * logN.toDouble)
 
     System.out.println(
-        s"Graph has $numVertices vertices (${graph.vertices.partitions.length} partitions),"
-      + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
-      + s"eps = $epsilon"
+      s"Graph has $numVertices vertices (${graph.vertices.partitions.length} partitions),"
+        + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
+        + s"eps = $epsilon"
     )
 
     //The following is needed for undirected (bi-directional edge) graphs
-    val vertexRDDs: VertexRDD[Int] = graph.vertices
-    val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
-    var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
+//    val vertexRDDs: VertexRDD[Int] = graph.vertices
+//    val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
+    var clusterGraph: Graph[(Int), Int] = graph//Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
-
-//    val epsilon: Double = 0.5
-    var maxDeg: Int = clusterGraph.aggregateMessages[Int](
-      triplet => {
-        if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
-          triplet.sendToDst(1)
-        }
-      }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
-    var numNewCenters: Long = 0
 
     var iteration = 0
 
     val times : Array[Long] = new Array[Long](100)
 
     var prevRankGraph: Graph[Int, Int] = null
-    while (maxDeg > 0) {
+
+    while (true){
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      clusterGraph = clusterGraph.cache()
-
-      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache()
-      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
-
-      numNewCenters = randomSet.count
-
       prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID).cache()
+      clusterGraph = clusterGraph.mapVertices((_, x) => x)
+      clusterGraph.vertices.cache().setName("v" + iteration)
+      clusterGraph.edges.cache(   ).setName("e" + iteration)
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
-//      clusterGraph.triplets.foreachPartition(_ => {})
       prevRankGraph.vertices.unpersist(false)
       prevRankGraph.edges.unpersist(false)
-
-      val clusterUpdates = clusterGraph.aggregateMessages[Int](
-        triplet => {
-          if (triplet.srcAttr == centerID & triplet.dstAttr == initID) {
-            triplet.sendToDst(triplet.srcId.toInt)
-          }
-        }, math.min(_, _)
-      ).cache()
-
-      if ((iteration+1) % checkpointIter == 0) clusterUpdates.checkpoint()
-
-      prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
-        (vId, oldAttr, newAttr) => newAttr
-      }.cache()
 
       if ((iteration+1) % checkpointIter == 0) {
-        clusterGraph = clusterGraph.cache()
+//        clusterGraph = clusterGraph.cache()
 //        clusterGraph.vertices.checkpoint()
 //        clusterGraph.edges.checkpoint()
-        clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
-        clusterGraph.vertices.filter(_=>false).count()
-        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
+//        clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
+//        clusterGraph.vertices.filter(_=>false).count()
+//        clusterGraph = Graph(clusterGraph.vertices, clusterGraph.edges)
         clusterGraph.checkpoint()
-        clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
-        clusterGraph.vertices.filter(_=>false).count()
+        clusterGraph
+        clusterGraph.vertices.cache().setName("vc" + iteration)
+        clusterGraph.edges.cache(   ).setName("ec" + iteration)
+        clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+        clusterGraph.vertices.foreachPartition(_ => {})
+//        clusterGraph.aggregateMessages[Int](_ => {}, _+_).foreach(_=>{})
+//        clusterGraph.vertices.filter(_=>false).count()
       }
-
-      if (((iteration+1) % maxDegRecomputeRounds) == 0) {
-        maxDeg = clusterGraph.aggregateMessages[Int](
-          triplet => {
-            if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
-              triplet.sendToDst(1)
-            }
-          }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
-      }
-
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-//      clusterGraph.triplets.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
-
-      if ((iteration+1) % checkpointIter == 0){
-        if (checkpointClean && iteration-checkpointIter >= 0) {
-          if (checkpointLocal)
-            Seq("rm", "-rf", checkpointDir + (iteration - checkpointIter).toString).!
-          else
-            Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
-        }
-      }
-
 
       times(1) = System.currentTimeMillis()
 
       System.out.println(
-          "qq\t" +
+        "qq\t" +
           s"$iteration\t" +
-          s"$maxDeg\t" +
-          s"$numNewCenters\t" +
           s"${times(1)-times(0)}\t" +
           "")
-
 
       iteration += 1
     }
 
-    //Take care of degree 0 nodes
-    clusterGraph = AuxiliaryFunctions.setZeroDegreeToCenter(clusterGraph, initID, centerID).cache()
-
-    System.out.println(s"${AuxiliaryFunctions.computeObjective(clusterGraph)}")
-
-    if (checkpointClean) {
-      if (checkpointLocal)
-        Seq("rm", "-rf", checkpointDir).!
-      else
-        Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
-    }
-
-    System.out.print()
-
   }
+
+
 }
