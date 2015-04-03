@@ -119,7 +119,7 @@ object SimpleCheckpoint {
       numNewCenters = randomSet.count
 
 //      prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
+      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
       clusterGraph.vertices.cache().setName("v" + iteration + ".1")
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
 //      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
