@@ -110,8 +110,12 @@ object SimpleCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
+      clusterGraph = clusterGraph.cache()
+
       val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < epsilon / maxDeg.toFloat)).cache().setName("r" + iteration)
-//
+      if ((iteration+1) % checkpointIter == 0) randomSet.checkpoint()
+      numNewCenters = randomSet.count
+
 //      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
       clusterGraph.vertices.cache().setName("v" + iteration + ".1")
@@ -175,6 +179,8 @@ object SimpleCheckpoint {
       System.out.println(
         "qq\t" +
           s"$iteration\t" +
+          s"$maxDeg\t" +
+          s"$numNewCenters\t" +
           s"${times(1)-times(0)}\t" +
           "")
 
