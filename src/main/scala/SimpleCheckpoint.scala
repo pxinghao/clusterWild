@@ -98,7 +98,13 @@ object SimpleCheckpoint {
 
 //    var prevRankGraph: Graph[Int, Int] = null
 
-    var maxDeg = 10000
+    var maxDeg: Int = clusterGraph.aggregateMessages[Int](
+      triplet => {
+        if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
+          triplet.sendToDst(1)
+        }
+      }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+    var numNewCenters: Long = 0
 
     while (true){
       times(0) = System.currentTimeMillis()
@@ -141,7 +147,6 @@ object SimpleCheckpoint {
 
       if ((iteration+1) % checkpointIter == 0) {
         clusterGraph.checkpoint()
-        clusterGraph
         clusterGraph.vertices.cache().setName("vc" + iteration)
         clusterGraph.edges.cache(   ).setName("ec" + iteration)
         clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
@@ -156,6 +161,15 @@ object SimpleCheckpoint {
         }
       }
 
+      if (((iteration+1) % maxDegRecomputeRounds) == 0) {
+        maxDeg = clusterGraph.aggregateMessages[Int](
+          triplet => {
+            if (triplet.dstAttr == initID & triplet.srcAttr == initID) {
+              triplet.sendToDst(1)
+            }
+          }, _ + _).map(x => x._2).fold(0)((a, b) => math.max(a, b))
+      }
+
       times(1) = System.currentTimeMillis()
 
       System.out.println(
@@ -164,7 +178,7 @@ object SimpleCheckpoint {
           s"${times(1)-times(0)}\t" +
           "")
 
-      if ((iteration+1) % (2*checkpointIter) == 0){
+      if ((iteration+1) % (5*checkpointIter) == 0){
         while (true){}
       }
       iteration += 1
