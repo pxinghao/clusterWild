@@ -102,8 +102,10 @@ object SimpleCheckpoint {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
+      val randomSet = clusterGraph.vertices.filter(v => (v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
+
       prevRankGraph = clusterGraph
-      clusterGraph = clusterGraph.mapVertices((_, x) => x)
+      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
       clusterGraph.vertices.cache().setName("v" + iteration)
       clusterGraph.edges.cache(   ).setName("e" + iteration)
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
@@ -136,7 +138,7 @@ object SimpleCheckpoint {
             Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
         }
       }
-      
+
       times(1) = System.currentTimeMillis()
 
       System.out.println(
