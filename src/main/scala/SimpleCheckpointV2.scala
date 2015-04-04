@@ -114,7 +114,7 @@ object SimpleCheckpointV2 {
       times(1) = System.currentTimeMillis()
 
       // 1st join with randomSet
-      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
+//      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
 
       // Compute clusterUpdates
 
@@ -135,7 +135,7 @@ object SimpleCheckpointV2 {
       times(4) = System.currentTimeMillis()
 
       // Materialize clusterGraph, make all computations
-      prevRankGraph = clusterGraph
+//      prevRankGraph = clusterGraph
       clusterGraph.vertices.cache().setName("v" + iteration + ".2")
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
       clusterGraph.edges.foreachPartition(x => {})
@@ -145,7 +145,7 @@ object SimpleCheckpointV2 {
 
       // Unpersist from memory
       randomSet.unpersist(false)
-      prevRankGraph.unpersist(false)
+//      prevRankGraph.unpersist(false)
 
       // Remove old checkpoint
       if ((iteration+1) % checkpointIter == 0){
