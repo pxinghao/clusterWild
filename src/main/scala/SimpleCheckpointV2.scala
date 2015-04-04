@@ -93,7 +93,8 @@ object SimpleCheckpointV2 {
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
-    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2))
+//    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2))
+    var vrdd : VertexRDD[Int] = clusterGraph.vertices
 
     var maxDeg = 100000
 
@@ -110,7 +111,8 @@ object SimpleCheckpointV2 {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
-      vrdd = vrdd.join(vrdd).map(x => (x._1, x._2._2))
+//      vrdd = vrdd.join(vrdd).map(x => (x._1, x._2._2))
+      vrdd = vrdd.innerJoin(vrdd)((i,x,y) => x)
 
       // Compute randomSet
 //      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
