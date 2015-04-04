@@ -121,14 +121,14 @@ object SimpleCheckpoint {
 
       times(1) = System.currentTimeMillis()
 
-      prevRankGraph = clusterGraph
+//      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => centerID)
       clusterGraph.vertices.cache().setName("v" + iteration + ".1")
       clusterGraph.edges.cache(   ).setName("e" + iteration + ".1")
       clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
       clusterGraph.vertices.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       times(2) = System.currentTimeMillis()
 
@@ -147,29 +147,30 @@ object SimpleCheckpoint {
       times(3) = System.currentTimeMillis()
 
 
-      prevRankGraph = clusterGraph
+//      prevRankGraph = clusterGraph
       clusterGraph = clusterGraph.joinVertices(clusterUpdates) {
         (vId, oldAttr, newAttr) => newAttr
       }
-      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
-      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
-      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
-      clusterGraph.vertices.foreachPartition(_ => {})
-      prevRankGraph.vertices.unpersist(false)
-      prevRankGraph.edges.unpersist(false)
-
-      times(4) = System.currentTimeMillis()
-
-
       if ((iteration+1) % checkpointIter == 0) {
-//        clusterGraph.checkpoint()
+        clusterGraph.checkpoint()
         clusterGraph.vertices.checkpoint()
         clusterGraph.edges.checkpoint()
         clusterGraph.vertices.cache().setName("vc" + iteration)
         clusterGraph.edges.cache(   ).setName("ec" + iteration)
         clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
         clusterGraph.vertices.foreachPartition(_ => {})
+//        System.out.println(s"Checkpointing: ${clusterGraph.vertices.isCheckpointed}, ${clusterGraph.edges.isCheckpointed}")
       }
+
+      times(4) = System.currentTimeMillis()
+
+
+      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
+      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
+      clusterGraph.edges.foreachPartition(x => {}) // also materializes rankGraph.vertices
+      clusterGraph.vertices.foreachPartition(_ => {})
+//      prevRankGraph.vertices.unpersist(false)
+//      prevRankGraph.edges.unpersist(false)
 
       times(5) = System.currentTimeMillis()
 
