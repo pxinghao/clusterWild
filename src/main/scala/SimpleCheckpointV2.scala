@@ -2,7 +2,8 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.graphx._
 import org.apache.spark.graphx.util.GraphGenerators
-import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd._
+import org.apache.spark.SparkContext._
 
 import scala.collection.immutable.Map
 import scala.sys.process._
@@ -92,6 +93,8 @@ object SimpleCheckpointV2 {
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
+    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2))
+
     var maxDeg = 100000
 
     var iteration = 0
@@ -107,15 +110,17 @@ object SimpleCheckpointV2 {
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
+      vrdd = vrdd.join(vrdd).map(x => (x._1, x._2._2))
+
       // Compute randomSet
-      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
-      numNewCenters = randomSet.count
+//      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
+//      numNewCenters = randomSet.count
 
       times(1) = System.currentTimeMillis()
 
       // 1st join with randomSet
 //      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
-      clusterGraph = clusterGraph.joinVertices(clusterGraph.vertices)((v,i,j) => i)
+//      clusterGraph = clusterGraph.joinVertices(clusterGraph.vertices)((v,i,j) => i)
 
       // Compute clusterUpdates
 
@@ -128,24 +133,26 @@ object SimpleCheckpointV2 {
 
       // Mark for checkpoint
       if ((iteration+1) % checkpointIter == 0) {
-        clusterGraph.checkpoint()
-        clusterGraph.vertices.checkpoint()
-        clusterGraph.edges.checkpoint()
+//        clusterGraph.checkpoint()
+//        clusterGraph.vertices.checkpoint()
+//        clusterGraph.edges.checkpoint()
+        vrdd.checkpoint()
       }
 
       times(4) = System.currentTimeMillis()
 
       // Materialize clusterGraph, make all computations
 //      prevRankGraph = clusterGraph
-      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
-      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
-      clusterGraph.edges.foreachPartition(x => {})
-      clusterGraph.vertices.foreachPartition(_ => {})
+//      clusterGraph.vertices.cache().setName("v" + iteration + ".2")
+//      clusterGraph.edges.cache(   ).setName("e" + iteration + ".2")
+//      clusterGraph.edges.foreachPartition(x => {})
+//      clusterGraph.vertices.foreachPartition(_ => {})
+      vrdd.foreachPartition(_ => {})
 
       times(5) = System.currentTimeMillis()
 
       // Unpersist from memory
-      randomSet.unpersist(false)
+//      randomSet.unpersist(false)
 //      prevRankGraph.unpersist(false)
 
       // Remove old checkpoint
