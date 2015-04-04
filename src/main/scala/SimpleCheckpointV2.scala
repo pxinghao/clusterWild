@@ -115,6 +115,7 @@ object SimpleCheckpointV2 {
 
       // 1st join with randomSet
 //      clusterGraph = clusterGraph.joinVertices(randomSet)((vId, attr, active) => initID)
+      clusterGraph = clusterGraph.joinVertices(clusterGraph.vertices)((v,i,j) => i)
 
       // Compute clusterUpdates
 
