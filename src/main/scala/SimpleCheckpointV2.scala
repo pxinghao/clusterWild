@@ -156,7 +156,7 @@ object SimpleCheckpointV2 {
       vrdd.foreachPartition(_ => {})
 
       // Uncache
-      oldVRDD.unpersist(false)
+//      oldVRDD.unpersist(false)
 
       times(5) = System.currentTimeMillis()
 
