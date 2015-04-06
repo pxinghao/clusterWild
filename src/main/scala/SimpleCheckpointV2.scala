@@ -93,8 +93,8 @@ object SimpleCheckpointV2 {
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
-//    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2))
-    var vrdd : VertexRDD[Int] = clusterGraph.vertices
+    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2))
+//    var vrdd : VertexRDD[Int] = clusterGraph.vertices
 
     var maxDeg = 100000
 
@@ -104,7 +104,8 @@ object SimpleCheckpointV2 {
 
     var prevRankGraph: Graph[Int, Int] = null
 
-    var oldVRDD : VertexRDD[Int] = null
+//    var oldVRDD : VertexRDD[Int] = null
+    var oldVRDD : RDD[(Long,Int)] = null
 
     var numNewCenters: Long = 0
     var numNewSpokes: Long = 0
@@ -116,7 +117,8 @@ object SimpleCheckpointV2 {
       oldVRDD = vrdd
 
 //      vrdd = vrdd.join(vrdd).map(x => (x._1, x._2._2))
-      vrdd = vrdd.innerJoin(vrdd)((i,x,y) => x).cache()
+      vrdd = vrdd.zipPartitions(vrdd) { (x,y) => x }.cache()
+//      vrdd = vrdd.innerJoin(vrdd)((i,x,y) => x).cache()
 
       // Compute randomSet
 //      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
