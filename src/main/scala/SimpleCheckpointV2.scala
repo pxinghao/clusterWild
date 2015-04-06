@@ -104,12 +104,16 @@ object SimpleCheckpointV2 {
 
     var prevRankGraph: Graph[Int, Int] = null
 
+    var oldVRDD : VertexRDD[Int] = null
+
     var numNewCenters: Long = 0
     var numNewSpokes: Long = 0
 
     while (iteration<50){
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
+
+      oldVRDD = vrdd
 
 //      vrdd = vrdd.join(vrdd).map(x => (x._1, x._2._2))
       vrdd = vrdd.innerJoin(vrdd)((i,x,y) => x).cache()
@@ -150,6 +154,9 @@ object SimpleCheckpointV2 {
 //      clusterGraph.edges.foreachPartition(x => {})
 //      clusterGraph.vertices.foreachPartition(_ => {})
       vrdd.foreachPartition(_ => {})
+
+      // Uncache
+      oldVRDD.unpersist(false)
 
       times(5) = System.currentTimeMillis()
 
