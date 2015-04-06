@@ -107,12 +107,12 @@ object SimpleCheckpointV2 {
     var numNewCenters: Long = 0
     var numNewSpokes: Long = 0
 
-    while (true){
+    while (iteration<50){
       times(0) = System.currentTimeMillis()
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
 
 //      vrdd = vrdd.join(vrdd).map(x => (x._1, x._2._2))
-      vrdd = vrdd.innerJoin(vrdd)((i,x,y) => x)
+      vrdd = vrdd.innerJoin(vrdd)((i,x,y) => x).cache()
 
       // Compute randomSet
 //      val randomSet = clusterGraph.vertices.filter(v => (true || v._2 == initID) && (scala.util.Random.nextFloat < 2.0)).cache().setName("r" + iteration)
@@ -187,6 +187,7 @@ object SimpleCheckpointV2 {
           s"${times(6)-times(5)}\t" +
           s"${times(7)-times(6)}\t" +
           "")
+      System.out.println(s"Storage level = ${vrdd.getStorageLevel}")
       //      System.out.println(
       //        s"${clusterGraph.vertices.toDebugString.count(_ == '+')}\t" +
       //        s"${clusterGraph.edges.toDebugString.count(_ == '+')}\t" +
