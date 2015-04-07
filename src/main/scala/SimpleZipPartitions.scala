@@ -11,7 +11,7 @@ object SimpleZipPartitions{
     val checkpointDir   : String  = "/mnt/checkpoints/"
     sc.setCheckpointDir(checkpointDir)
 
-    val numRands = 100000
+    val numRands = 10000
     val randArray = new Array[Double](numRands)
 
     var i = 0
@@ -20,7 +20,7 @@ object SimpleZipPartitions{
       i += 1
     }
 
-    val R = sc.parallelize(randArray)
+    val R = sc.parallelize(randArray, 160)
 
     i = 0
     while (i < 20){
