@@ -1,6 +1,7 @@
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.{GraphLoader, Graph}
+import org.apache.spark.graphx.{Edge, VertexRDD, GraphLoader, Graph}
 import org.apache.spark.graphx.util.GraphGenerators
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.immutable.Map
@@ -74,7 +75,13 @@ object SimpleZipPartitions{
         + s"eps = $epsilon"
     )
 
-    sc.setCheckpointDir(checkpointDir)
+    //The following is needed for undirected (bi-directional edge) graphs
+    val vertexRDDs: VertexRDD[Int] = graph.vertices
+    val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
+    var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
+    clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
+
+    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2)).cache()
 
     val numRands = 10000
     val randArray = new Array[Double](numRands)
@@ -89,7 +96,8 @@ object SimpleZipPartitions{
 
     i = 0
     while (i < 20){
-      R.zipPartitions(R) { (x,y) => x }.cache()
+      R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + i)
+      if (i == 10)sc.setCheckpointDir(checkpointDir + i.toString)
       if (i == 10) R.checkpoint()
       R.foreachPartition(_ => {})
       i += 1
