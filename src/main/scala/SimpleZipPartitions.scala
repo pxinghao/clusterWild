@@ -6,10 +6,10 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.immutable.Map
 
+import scala.sys.process._
+
 object SimpleZipPartitions{
   def main(args: Array[String]) = {
-    Logger.getLogger("org").setLevel(Level.WARN)
-    Logger.getLogger("akka").setLevel(Level.WARN)
 
     System.setProperty("spark.worker.timeout",                     "30000")
     System.setProperty("spark.storage.blockManagerHeartBeatMs",    "5000")
@@ -46,6 +46,7 @@ object SimpleZipPartitions{
     val epsilon         : Double  = argmap.getOrElse("epsilon", "0.5").toDouble
     val checkpointIter  : Int     = argmap.getOrElse("checkpointiter", "20").toInt
     val checkpointDir   : String  = argmap.getOrElse("checkpointdir", "/mnt/checkpoints/")
+    //    val checkpointDir  : String = argmap.getOrElse("checkpointdir", "/Users/xinghao/Documents/tempcheckpoint")
     val checkpointClean : Boolean = argmap.getOrElse("checkpointclean", "true").toBoolean
     val checkpointLocal : Boolean = argmap.getOrElse("checkpointlocal", "false").toBoolean
 
@@ -55,6 +56,14 @@ object SimpleZipPartitions{
     System.out.println(s"numPartitions  = $numPartitions")
     System.out.println(s"epsilon        = $epsilon")
     System.out.println(s"checkpointIter = $checkpointIter")
+
+    /*
+    var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => initID.toInt )
+
+//    val path = "/Users/dimitris/Documents/graphs/astro.txt"
+//    val numPartitions = 4
+//    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numPartitions)
+    */
 
     val initID: Int = -100
     val centerID: Int = -200
@@ -86,21 +95,23 @@ object SimpleZipPartitions{
     val numRands = 10000
     val randArray = new Array[(Long,Int)](numRands)
 
-    var i = 0
-    while (i < numRands){
-      randArray(i) = (scala.util.Random.nextLong(), scala.util.Random.nextInt())
-      i += 1
-    }
-
     val R = vrdd//sc.parallelize(randArray, 160)
 
-    i = 0
-    while (i < 20){
-      R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + i)
-      if (i == 10) sc.setCheckpointDir(checkpointDir + i.toString)
-      if (i == 10) R.checkpoint()
+    var iteration = 0
+    while (iteration < 20){
+      R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + iteration)
+      if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
+      if ((iteration+1) % checkpointIter == 0) R.checkpoint()
       R.foreachPartition(_ => {})
-      i += 1
+      if ((iteration+1) % checkpointIter == 0){
+        if (checkpointClean && iteration-checkpointIter >= 0) {
+          if (checkpointLocal)
+            Seq("rm", "-rf", checkpointDir + (iteration - checkpointIter).toString).!
+          else
+            Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
+        }
+      }
+      iteration += 1
     }
 
     println("Done")
@@ -108,3 +119,13 @@ object SimpleZipPartitions{
 
   }
 }
+
+
+
+
+
+
+
+
+
+
