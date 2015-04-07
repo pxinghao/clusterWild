@@ -1,11 +1,11 @@
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.{Edge, VertexRDD, GraphLoader, Graph}
-import org.apache.spark.graphx.util.GraphGenerators
-import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.graphx._
+import org.apache.spark.graphx.util.GraphGenerators
+import org.apache.spark.rdd._
+import org.apache.spark.SparkContext._
 
 import scala.collection.immutable.Map
-
 import scala.sys.process._
 
 object SimpleZipPartitions{
@@ -90,15 +90,10 @@ object SimpleZipPartitions{
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
-    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2)).cache()
-
-    val numRands = 10000
-    val randArray = new Array[(Long,Int)](numRands)
-
-    val R = vrdd//sc.parallelize(randArray, 160)
+    var R : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2)).cache()
 
     var iteration = 0
-    while (iteration < 20){
+    while (iteration < 50){
       R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + iteration)
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
       if ((iteration+1) % checkpointIter == 0) R.checkpoint()

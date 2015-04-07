@@ -8,9 +8,6 @@ import org.apache.spark.SparkContext._
 import scala.collection.immutable.Map
 import scala.sys.process._
 
-/**
- * Created by xinghao on 3/10/15.
- */
 object SimpleCheckpointV2 {
   def main(args: Array[String]) = {
 
