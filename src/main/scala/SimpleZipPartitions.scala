@@ -6,29 +6,21 @@ object SimpleZipPartitions{
 
     val sc = new SparkContext()
 
-    val argmap: Map[String, String] = args.map { a =>
-      val argPair = a.split("=")
-      val name = argPair(0).toLowerCase
-      val value = argPair(1)
-      (name, value)
-    }.toMap
-
     val numPartitions   : Int     = 160
     val checkpointIter  : Int     = 10
     val checkpointDir   : String  = "/mnt/checkpoints/"
 
-    var R    : RDD[(Long,Int)] = sc.parallelize((0 until numPartitions), numPartitions).mapPartitions(_ => new Array[(Long,Int)](10).toSeq.iterator).cache()
-    var oldR : RDD[(Long,Int)] = null
+    var R : RDD[(Long,Int)]
+    = sc.parallelize((0 until numPartitions), numPartitions)
+      .mapPartitions(_ => new Array[(Long,Int)](10000000).toSeq.iterator).cache()
 
     sc.setCheckpointDir(checkpointDir)
 
     var iteration = 0
     while (iteration < 50){
-      oldR = R
       R = R.zipPartitions(R) { (x,y) => x }.cache()
       if ((iteration+1) % checkpointIter == 0) R.checkpoint()
       R.foreachPartition(_ => {})
-      oldR.unpersist()
       iteration += 1
     }
 
