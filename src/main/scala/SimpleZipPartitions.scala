@@ -84,11 +84,11 @@ object SimpleZipPartitions{
     var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2)).cache()
 
     val numRands = 10000
-    val randArray = new Array[Double](numRands)
+    val randArray = new Array[(Long,Int)](numRands)
 
     var i = 0
     while (i < numRands){
-      randArray(i) = scala.util.Random.nextDouble()
+      randArray(i) = (scala.util.Random.nextLong(), scala.util.Random.nextInt())
       i += 1
     }
 
@@ -97,12 +97,13 @@ object SimpleZipPartitions{
     i = 0
     while (i < 20){
       R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + i)
-      if (i == 10)sc.setCheckpointDir(checkpointDir + i.toString)
+      if (i == 10) sc.setCheckpointDir(checkpointDir + i.toString)
       if (i == 10) R.checkpoint()
       R.foreachPartition(_ => {})
       i += 1
     }
 
+    println("Done")
     while (true) {}
 
   }
