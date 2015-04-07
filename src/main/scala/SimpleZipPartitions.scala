@@ -11,23 +11,25 @@ import scala.sys.process._
 object SimpleZipPartitions{
   def main(args: Array[String]) = {
 
-    System.setProperty("spark.worker.timeout",                     "30000")
-    System.setProperty("spark.storage.blockManagerHeartBeatMs",    "5000")
-    System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
-    System.setProperty("spark.akka.timeout",                       "30000")
-    System.setProperty("spark.akka.retry.wait",                    "30000")
-    System.setProperty("spark.akka.frameSize",                     "2047")
-    System.setProperty("spark.locality.wait",                      "300000000000")
-    val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
-      ("spark.worker.timeout",                     "30000"),
-      ("spark.storage.blockManagerHeartBeatMs",    "5000"),
-      ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
-      ("spark.akka.timeout",                       "30000"),
-      ("spark.akka.retry.wait",                    "30000"),
-      ("spark.akka.frameSize",                     "2047"),
-      ("spark.locality.wait",                      "300000000000"),
-      ("spark.logConf",                            "true")
-    )))
+//    System.setProperty("spark.worker.timeout",                     "30000")
+//    System.setProperty("spark.storage.blockManagerHeartBeatMs",    "5000")
+//    System.setProperty("spark.storage.blockManagerSlaveTimeoutMs", "100000")
+//    System.setProperty("spark.akka.timeout",                       "30000")
+//    System.setProperty("spark.akka.retry.wait",                    "30000")
+//    System.setProperty("spark.akka.frameSize",                     "2047")
+//    System.setProperty("spark.locality.wait",                      "300000000000")
+//    val sc = new SparkContext(new SparkConf().setAll(List[(String,String)](
+//      ("spark.worker.timeout",                     "30000"),
+//      ("spark.storage.blockManagerHeartBeatMs",    "5000"),
+//      ("spark.storage.blockManagerSlaveTimeoutMs", "100000"),
+//      ("spark.akka.timeout",                       "30000"),
+//      ("spark.akka.retry.wait",                    "30000"),
+//      ("spark.akka.frameSize",                     "2047"),
+//      ("spark.locality.wait",                      "300000000000"),
+//      ("spark.logConf",                            "true")
+//    )))
+
+    val sc = new SparkContext()
 
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
@@ -57,47 +59,16 @@ object SimpleZipPartitions{
     System.out.println(s"epsilon        = $epsilon")
     System.out.println(s"checkpointIter = $checkpointIter")
 
-    /*
-    var graph: Graph[Int, Int] = GraphGenerators.rmatGraph(sc, requestedNumVertices = 1e8.toInt, numEdges = 1e8.toInt).mapVertices( (id, _) => initID.toInt )
 
-//    val path = "/Users/dimitris/Documents/graphs/astro.txt"
-//    val numPartitions = 4
-//    val graph: Graph[(Int), Int] = GraphLoader.edgeListFile(sc, path, false, numPartitions)
-    */
-
-    val initID: Int = -100
-    val centerID: Int = -200
-
-    val graph: Graph[(Int), Int] =
-      if (graphType == "rmat")
-        GraphGenerators.rmatGraph(sc, requestedNumVertices = rMatNumEdges.toInt, numEdges = rMatNumEdges.toInt).mapVertices((id, _) => initID.toInt)
-      else
-        GraphLoader.edgeListFile(sc, path, false, numPartitions)
-
-    val numVertices = graph.vertices.count
-    val logN = math.floor(math.log(numVertices.toDouble))
-    val maxDegRecomputeRounds = logN //math.floor(2.0 / epsilon * logN.toDouble)
-
-    System.out.println(
-      s"Graph has $numVertices vertices (${graph.vertices.partitions.length} partitions),"
-        + s"${graph.edges.count} edges (${graph.edges.partitions.length} partitions),"
-        + s"eps = $epsilon"
-    )
-
-    //The following is needed for undirected (bi-directional edge) graphs
-    val vertexRDDs: VertexRDD[Int] = graph.vertices
-    val edgeRDDs: RDD[Edge[Int]] = graph.edges.reverse.union(graph.edges)
-    var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
-    clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
-
-    var R : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2)).cache()
+    var R : RDD[(Long,Int)] = sc.parallelize((0 until numPartitions).toArray, numPartitions).mapPartitions(_ => new Array[(Long,Int)](100000).iterator).cache()
 
     var iteration = 0
     while (iteration < 50){
-      R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + iteration)
+      R = R.zipPartitions(R) { (x,y) => x }.cache().setName("r" + iteration)
       if ((iteration+1) % checkpointIter == 0) sc.setCheckpointDir(checkpointDir + iteration.toString)
       if ((iteration+1) % checkpointIter == 0) R.checkpoint()
       R.foreachPartition(_ => {})
+      /*
       if ((iteration+1) % checkpointIter == 0){
         if (checkpointClean && iteration-checkpointIter >= 0) {
           if (checkpointLocal)
@@ -106,6 +77,7 @@ object SimpleZipPartitions{
             Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir + (iteration - checkpointIter).toString).!
         }
       }
+      */
       iteration += 1
     }
 
