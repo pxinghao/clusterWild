@@ -93,7 +93,7 @@ object SimpleCheckpointV2 {
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
-    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2))
+    var vrdd : RDD[(Long,Int)] = clusterGraph.vertices.map(v => (v._1, v._2)).cache()
 //    var vrdd : VertexRDD[Int] = clusterGraph.vertices
 
     var maxDeg = 100000
