@@ -60,7 +60,7 @@ object SimpleZipPartitions{
     System.out.println(s"checkpointIter = $checkpointIter")
 
 
-    var R : RDD[(Long,Int)] = sc.parallelize((0 until numPartitions).toArray, numPartitions).mapPartitions(_ => new Array[(Long,Int)](100000).iterator).cache()
+    var R : RDD[(Long,Int)] = sc.parallelize((0 until numPartitions), numPartitions).mapPartitions(_ => new Array[(Long,Int)](100000).toSeq.iterator).cache()
 
     var iteration = 0
     while (iteration < 50){
