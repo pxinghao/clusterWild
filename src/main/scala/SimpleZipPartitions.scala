@@ -92,7 +92,7 @@ object SimpleZipPartitions{
       i += 1
     }
 
-    val R = sc.parallelize(randArray, 160)
+    val R = vrdd//sc.parallelize(randArray, 160)
 
     i = 0
     while (i < 20){
