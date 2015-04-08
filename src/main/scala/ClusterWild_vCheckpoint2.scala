@@ -10,7 +10,7 @@ import scala.sys.process._
 /**
  * Created by xinghao on 3/10/15.
  */
-object ClusterWild_vCheckpoint {
+object ClusterWild_vCheckpoint2 {
   def main(args: Array[String]) = {
 
     System.setProperty("spark.worker.timeout",                     "30000")
