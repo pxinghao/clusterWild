@@ -16,21 +16,17 @@ object SimpleZipPartitions{
     = sc.parallelize((0 until numPartitions), numPartitions)
       .mapPartitions(_ => new Array[(Long,Int)](10000000).map(i => (0L,0)).toSeq.iterator).cache()
 
-    var prevR = R
-
     sc.setCheckpointDir(checkpointDir)
 
     var iteration = 0
     while (iteration < 50){
-      prevR = R
-      R = R.zipPartitions(R)((x,y) => x)
+//      R = R.join(R).map(_ => (0L,0)).cache()
+      R = R.zipPartitions(R)((x,y) => x).cache()
       if ((iteration+1) % checkpointIter == 0) {
-        R = R.map(x => x)
+        R = R.map(x => x).cache()
         R.checkpoint()
       }
-      R.cache().setName("R." + iteration)
       R.foreachPartition(_ => {})
-      prevR.unpersist(false)
       iteration += 1
     }
 
