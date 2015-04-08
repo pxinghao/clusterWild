@@ -18,15 +18,19 @@ object SimpleZipPartitions{
 
     sc.setCheckpointDir(checkpointDir)
 
+    var prevR = R
+
     var iteration = 0
     while (iteration < 50){
 //      R = R.join(R).map(_ => (0L,0)).cache()
-      R = R.zipPartitions(R)((x,y) => x).cache()
-      R = R.map(x => x).cache()
+      prevR = R
+      R = R.zipPartitions(R)((x,y) => x)
+      R = R.map(x => x).cache().setName("R." + iteration)
       if ((iteration+1) % checkpointIter == 0) {
         R.checkpoint()
       }
       R.foreachPartition(_ => {})
+      prevR.unpersist()
       iteration += 1
     }
 
