@@ -25,7 +25,7 @@ object SimpleZipPartitions{
       prevR = R
       R = R.zipPartitions(R)((x,y) => x)
       if ((iteration+1) % checkpointIter == 0) {
-        R = R.mapPartitions(x => x)
+        R = R.map(x => x)
         R.checkpoint()
       }
       R.cache().setName("R." + iteration)
