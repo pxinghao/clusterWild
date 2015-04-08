@@ -22,6 +22,7 @@ object SimpleZipPartitions{
     while (iteration < 50){
 //      R = R.join(R).map(_ => (0L,0)).cache()
       R = R.zipPartitions(R)((x,y) => x).cache()
+      R = R.map(x => x).cache()
       if ((iteration+1) % checkpointIter == 0) R.checkpoint()
       R.foreachPartition(_ => {})
       iteration += 1

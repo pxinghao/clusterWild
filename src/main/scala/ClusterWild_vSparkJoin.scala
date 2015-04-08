@@ -97,8 +97,8 @@ object ClusterWild_vSparkJoin {
     var clusterGraph: Graph[(Int), Int] = Graph(vertexRDDs, edgeRDDs)
     clusterGraph = clusterGraph.mapVertices((id, _) => initID.toInt)
 
-    var unclusteredVertices = vertexRDDs.map(vi => (vi._1, scala.util.Random.nextDouble()))
-    var unclusteredEdges    = edgeRDDs.map(e => (e.srcId, e.dstId))
+    var unclusteredVertices = vertexRDDs.map(vi => (vi._1, scala.util.Random.nextDouble())).cache()
+    var unclusteredEdges    = edgeRDDs.map(e => (e.srcId, e.dstId)).cache()
 
     var maxDeg : Int = unclusteredEdges.map(x => (x._2,x._1))
                         .join(unclusteredVertices).map(x => (x._1,1))
