@@ -28,7 +28,7 @@ object SimpleZipPartitions{
         R = R.mapPartitions(x => x)
         R.checkpoint()
       }
-      R.cache()
+      R.cache().setName("R." + iteration)
       R.foreachPartition(_ => {})
       prevR.unpersist(false)
       iteration += 1
