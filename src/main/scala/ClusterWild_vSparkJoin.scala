@@ -168,7 +168,7 @@ object ClusterWild_vSparkJoin {
         Seq("/root/ephemeral-hdfs/bin/hadoop", "fs", "-rmr", checkpointDir).!
     }
 
-    System.out.print()
+    while (true) {}
 
   }
 }
